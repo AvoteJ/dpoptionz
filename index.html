@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>Double Play Optionz</title>
+    <style>
+        body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+        header { width: 100%; padding: 20px 0; }
+        .nav-container { display: flex; justify-content: center; gap: 15px; }
+        .nav-link { text-decoration: none; color: rgba(255, 255, 255, 0.8); background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); padding: 8px 16px; border-radius: 4px; font-size: 14pt; }
+
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 100px; gap: 20px; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .main-title { font-size: 24pt; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; animation: fadeInUp 3s ease forwards; }
+        .main-title .accent { color: #e91e8c; }
+
+        .search-box-container { width: 100%; max-width: 500px; position: relative; }
+        .search-container { display: flex; gap: 10px; }
+        .search-input { flex: 1; padding: 12px 20px; font-size: 16px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 25px; background-color: rgba(255, 255, 255, 0.1); color: white; outline: none; }
+        .search-button { padding: 10px 25px; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); color: white; border-radius: 25px; cursor: pointer; }
+
+        .suggestions { position: absolute; width: 100%; background: #444; border-radius: 10px; margin-top: 5px; display: none; list-style: none; padding: 0; z-index: 10; }
+        .suggestions li { padding: 10px 20px; cursor: pointer; border-bottom: 1px solid #555; }
+        .suggestions li:hover { background: #555; }
+
+        #result-area { width: 90%; max-width: 900px; margin-top: 40px; }
+        table { border-collapse: collapse; width: 100%; background-color: rgba(255, 255, 255, 0.05); }
+        thead tr { background-color: #5c3333; }
+        th, td { padding: 12px; border: 1px solid #555; text-align: center; font-size: 10pt; }
+
+        .vote-btn { display: inline-block; padding: 4px 14px; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); color: rgba(255, 255, 255, 0.8); border-radius: 4px; text-decoration: none; font-size: 10pt; cursor: pointer; }
+        .vote-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="nav-container">
+            <a href="index.html" class="nav-link">Top</a>
+            <a href="table.html" class="nav-link">Table</a>
+            <a href="about.html" class="nav-link">About</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1 class="main-title"><span class="accent">D</span>ouble <span class="accent">P</span>lay Option<span class="accent" style="text-transform:none;">z</span></h1>
+
+        <div class="search-box-container">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Title 검색..." oninput="showSuggestions()" onkeydown="if(event.key==='Enter') performSearch()">
+            </div>
+            <ul id="suggestionList" class="suggestions"></ul>
+        </div>
+
+        <div id="result-area"></div>
+    </main>
+
+<script src="config.js"></script>
+<script>
+    let tableData = [];
+    let voteResults = {};
+
+    function parseCSVLine(line) {
+        const cols = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                inQuotes = !inQuotes;
+            } else if (ch === ',' && !inQuotes) {
+                cols.push(current.trim());
+                current = '';
+            } else {
+                current += ch;
+            }
+        }
+        cols.push(current.trim());
+        return cols;
+    }
+
+    // TABLE 데이터와 투표 집계 결과를 병렬로 불러오기
+    Promise.all([
+        fetch(`${APPS_SCRIPT_URL}?action=table`).then(r => r.json()),
+        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
+    ])
+    .then(([tableRes, voteData]) => {
+        voteResults = voteData.results || {};
+        tableData = tableRes.rows || [];
+    })
+    .catch(err => console.error('로드 실패:', err));
+
+    const input = document.getElementById('searchInput');
+    const suggestionList = document.getElementById('suggestionList');
+    const resultArea = document.getElementById('result-area');
+
+    // 연관 검색어 보여주기 (단어 단위 일치)
+    function showSuggestions() {
+        const query = input.value.toLowerCase();
+        suggestionList.innerHTML = '';
+
+        if (query.length > 0) {
+            const filtered = tableData.filter(item => {
+                const words = item.title.toLowerCase().split(/[\s\-～~†♦♥∮、。！？!?「」()（）\[\]]+/);
+                return words.some(word => word === query);
+            });
+            if (filtered.length > 0) {
+                suggestionList.style.display = 'block';
+                filtered.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item.title;
+                    li.onclick = () => { input.value = item.title; performSearch(); };
+                    suggestionList.appendChild(li);
+                });
+            } else {
+                suggestionList.style.display = 'none';
+            }
+        } else {
+            suggestionList.style.display = 'none';
+        }
+    }
+
+    // 값에 따른 색상 반환
+    function optColor(val) {
+        if (val === 'OFF')                         return ' style="color:#808080"';
+        if (val === 'MIRROR')                      return ' style="color:rgba(150,220,150,1)"';
+        if (val === 'RANDOM' || val === 'R-RANDOM') return ' style="color:#FFA500"';
+        if (val === 'S-RANDOM')                    return ' style="color:rgba(255,60,60,0.75)"';
+        return '';
+    }
+
+    // 검색 실행 및 표 그리기 (완전 일치)
+    function performSearch() {
+        const query = input.value.toLowerCase();
+        suggestionList.style.display = 'none';
+        const results = tableData.filter(item => item.title.toLowerCase() === query);
+
+        if (results.length > 0) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>FLIP</th><th>1P(LEFT)</th><th>2P(RIGHT)</th><th>Note</th><th>Vote</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            results.forEach(row => {
+                const vote = voteResults[row.title] || {};
+
+                const opt1 = vote.opt1 || row.opt1;
+                const opt2 = vote.opt2 || row.opt2;
+                const opt3 = vote.opt3 || row.opt3;
+
+                const opt1Style = optColor(opt1);
+                const opt2Style = optColor(opt2);
+                const opt3Style = optColor(opt3);
+
+                const voteCell = row.extra
+                    ? `<td><a href="vote.html?title=${encodeURIComponent(row.title)}" class="vote-btn">Vote</a></td>`
+                    : `<td></td>`;
+
+                html += `
+                    <tr>
+                        <td>${row.ver}</td><td>${row.title}</td><td>${row.diff}</td><td>${row.lv}</td><td${opt1Style}>${opt1}</td><td${opt2Style}>${opt2}</td><td${opt3Style}>${opt3}</td><td>${row.note}</td>${voteCell}
+                    </tr>
+                `;
+            });
+            html += `</tbody></table>`;
+            resultArea.innerHTML = html;
+        } else {
+            resultArea.innerHTML = '<p style="text-align:center;">검색 결과가 없습니다.</p>';
+        }
+    }
+</script>
+
+    <footer>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ provided by XYZ012</p>
+    </footer>
+</body>
+</html>
