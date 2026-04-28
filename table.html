@@ -47,55 +47,39 @@
         </table>
     </main>
  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script>
-    function parseCSVLine(line) {
-        const cols = [];
-        let current = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
-            if (ch === '"') {
-                inQuotes = !inQuotes;
-            } else if (ch === ',' && !inQuotes) {
-                cols.push(current.trim());
-                current = '';
-            } else {
-                current += ch;
-            }
-        }
-        cols.push(current.trim());
-        return cols;
-    }
-
-    // TABLE.csv와 투표 집계 결과를 병렬로 불러온 뒤 테이블 렌더링
+    // DPOPz DATABASE.xlsx와 투표 집계 결과를 병렬로 불러온 뒤 테이블 렌더링
     Promise.all([
-        fetch('TABLE.csv').then(r => r.arrayBuffer()),
+        fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer()),
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
     .then(([buffer, voteData]) => {
-        const text = new TextDecoder('utf-8').decode(buffer);
         const voteResults = voteData.results || {};
 
-        const lines = text.trim().split('\n');
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const xlsxRows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
         const tbody = document.getElementById('table-body');
 
-        for (let i = 1; i < lines.length; i++) {
-            const cols = parseCSVLine(lines[i]);
-            if (!cols[0] || cols[0].toUpperCase() === 'OFF') continue;
+        for (let i = 1; i < xlsxRows.length; i++) {
+            const r = xlsxRows[i];
+            if (!r[0] || String(r[0]).toUpperCase() === 'OFF') continue;
 
-            const rowTitle = cols[2] ? cols[2].trim() : '';
+            const rowTitle = String(r[2] ?? '').trim();
             const vote = voteResults[rowTitle] || {};
             const row = {
-                ver: cols[1]?.trim() ?? '',
-                title: cols[2]?.trim() ?? '',
-                diff: cols[3]?.trim() ?? '',
-                lv: cols[4]?.trim() ?? '',
-                opt1: cols[5]?.trim() ?? '',
-                opt2: cols[6]?.trim() ?? '',
-                opt3: cols[7]?.trim() ?? '',
-                note: cols[8]?.trim() ?? '',
-                extra: cols[9]?.trim() ?? '',
+                ver:   String(r[1] ?? '').trim(),
+                title: String(r[2] ?? '').trim(),
+                diff:  String(r[3] ?? '').trim(),
+                lv:    String(r[4] ?? '').trim(),
+                opt1:  String(r[5] ?? '').trim(),
+                opt2:  String(r[6] ?? '').trim(),
+                opt3:  String(r[7] ?? '').trim(),
+                note:  String(r[8] ?? '').trim(),
+                extra: String(r[9] ?? '').trim(),
             };
 
             const tr = document.createElement('tr');
