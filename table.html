@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>Double Play Optionz - Table</title>
+    <style>
+    body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+    header { width: 100%; padding: 20px 0; }
+    .nav-container { display: flex; justify-content: center; gap: 15px; }
+    .nav-link { text-decoration: none; color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.5); padding: 8px 16px; border-radius: 4px; }
+    main { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+    table { border-collapse: collapse; width: 95%; max-width: 1200px; background-color: rgba(255,255,255,0.05); }
+    th { background-color: #5c3333; padding: 12px; border: 1px solid #555; font-size: 11pt; }
+    td { padding: 10px; border: 1px solid #555; font-size: 10pt; text-align: center; }
+    .vote-btn { display: inline-block; padding: 4px 14px; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); color: rgba(255, 255, 255, 0.8); border-radius: 4px; text-decoration: none; font-size: 10pt; cursor: pointer; }
+    .vote-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body>
+ 
+    <header>
+        <nav class="nav-container">
+            <a href="index.html" class="nav-link">&lt;Top&gt;</a>
+            <a href="table.html" class="nav-link">&lt;Table&gt;</a>
+            <a href="about.html" class="nav-link">&lt;About&gt;</a>
+        </nav>
+    </header>
+ 
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Version</th>
+                    <th>Title</th>
+                    <th>Difficulty</th>
+                    <th>Lv</th>
+                    <th>FLIP</th>
+                    <th>1P(LEFT)</th>
+                    <th>2P(RIGHT)</th>
+                    <th>Note</th>
+                    <th>Vote</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+    </main>
+ 
+<script src="config.js"></script>
+<script>
+    function parseCSVLine(line) {
+        const cols = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                inQuotes = !inQuotes;
+            } else if (ch === ',' && !inQuotes) {
+                cols.push(current.trim());
+                current = '';
+            } else {
+                current += ch;
+            }
+        }
+        cols.push(current.trim());
+        return cols;
+    }
+
+    // TABLE.csv와 투표 집계 결과를 병렬로 불러온 뒤 테이블 렌더링
+    Promise.all([
+        fetch('TABLE.csv').then(r => r.arrayBuffer()),
+        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
+    ])
+    .then(([buffer, voteData]) => {
+        const text = new TextDecoder('utf-8').decode(buffer);
+        const voteResults = voteData.results || {};
+
+        const lines = text.trim().split('\n');
+        const tbody = document.getElementById('table-body');
+
+        for (let i = 1; i < lines.length; i++) {
+            const cols = parseCSVLine(lines[i]);
+            if (!cols[0] || cols[0].toUpperCase() === 'OFF') continue;
+
+            const rowTitle = cols[2] ? cols[2].trim() : '';
+            const vote = voteResults[rowTitle] || {};
+            const row = {
+                ver: cols[1]?.trim() ?? '',
+                title: cols[2]?.trim() ?? '',
+                diff: cols[3]?.trim() ?? '',
+                lv: cols[4]?.trim() ?? '',
+                opt1: cols[5]?.trim() ?? '',
+                opt2: cols[6]?.trim() ?? '',
+                opt3: cols[7]?.trim() ?? '',
+                note: cols[8]?.trim() ?? '',
+                extra: cols[9]?.trim() ?? '',
+            };
+
+            const tr = document.createElement('tr');
+
+            // Version, Title, Difficulty, Lv
+            ['ver', 'title', 'diff', 'lv'].forEach(key => {
+                const td = document.createElement('td');
+                td.textContent = row[key] || '';
+                tr.appendChild(td);
+            });
+
+            // FLIP, 1P(LEFT), 2P(RIGHT): 투표 결과가 있으면 덮어쓰기
+            ['opt1', 'opt2', 'opt3'].forEach(key => {
+                const td = document.createElement('td');
+                const val = vote[key] || row[key] || '';
+                td.textContent = val;
+
+                // 값에 따라 글자 색상 적용
+                if (val === 'OFF') {
+                    td.style.color = '#808080';
+                } else if (val === 'MIRROR') {
+                    td.style.color = 'rgba(150, 220, 150, 1)';
+                } else if (val === 'RANDOM' || val === 'R-RANDOM') {
+                    td.style.color = '#FFA500';
+                } else if (val === 'S-RANDOM') {
+                    td.style.color = 'rgba(255, 60, 60, 0.75)';
+                }
+                tr.appendChild(td);
+            });
+
+            // Note
+            const noteTd = document.createElement('td');
+            noteTd.textContent = row.note || '';
+            tr.appendChild(noteTd);
+
+            // Vote 버튼
+            const voteTd = document.createElement('td');
+            if (row.extra) {
+                const btn = document.createElement('a');
+                btn.href = `vote.html?title=${encodeURIComponent(rowTitle)}`;
+                btn.textContent = 'Vote';
+                btn.className = 'vote-btn';
+                voteTd.appendChild(btn);
+            }
+            tr.appendChild(voteTd);
+
+            tbody.appendChild(tr);
+        }
+    })
+    .catch(err => {
+        console.error('로드 실패:', err);
+        document.getElementById('table-body').innerHTML =
+            '<tr><td colspan="9">데이터를 불러오지 못했습니다.</td></tr>';
+    });
+</script>
+ 
+
+    <footer>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒprovided by XYZ012</p>
+    </footer>
+</body>
+</html>

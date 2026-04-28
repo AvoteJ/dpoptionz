@@ -41,14 +41,14 @@
 
     <header>
         <nav class="nav-container">
-            <a href="index.html" class="nav-link">Top</a>
-            <a href="table.html" class="nav-link">Table</a>
-            <a href="about.html" class="nav-link">About</a>
+            <a href="index.html" class="nav-link">&lt;Top&gt;</a>
+            <a href="table.html" class="nav-link">&lt;Table&gt;</a>
+            <a href="about.html" class="nav-link">&lt;About&gt;</a>
         </nav>
     </header>
 
     <main>
-        <h1 class="main-title"><span class="accent">D</span>ouble <span class="accent">P</span>lay Option<span class="accent" style="text-transform:none;">z</span></h1>
+        <h1 class="main-title"><span class="accent">D</span>ouble <span class="accent">P</span>lay Optionz<span class="accent" style="text-transform:none;">z</span></h1>
 
         <div class="search-box-container">
             <div class="search-container">
@@ -84,14 +84,30 @@
         return cols;
     }
 
-    // TABLE 데이터와 투표 집계 결과를 병렬로 불러오기
+    // TABLE.csv와 투표 집계 결과를 병렬로 불러오기
     Promise.all([
-        fetch(`${APPS_SCRIPT_URL}?action=table`).then(r => r.json()),
+        fetch('TABLE.csv').then(r => r.arrayBuffer()),
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
-    .then(([tableRes, voteData]) => {
+    .then(([buffer, voteData]) => {
+        const text = new TextDecoder('utf-8').decode(buffer);
         voteResults = voteData.results || {};
-        tableData = tableRes.rows || [];
+        const lines = text.trim().split('\n');
+
+        tableData = lines.slice(1)
+            .map(line => parseCSVLine(line))
+            .filter(cols => cols[0].toUpperCase() !== 'OFF')
+            .map(cols => ({
+                ver:   cols[1] ?? '',
+                title: cols[2] ?? '',
+                diff:  cols[3] ?? '',
+                lv:    cols[4] ?? '',
+                opt1:  cols[5] ?? '',
+                opt2:  cols[6] ?? '',
+                opt3:  cols[7] ?? '',
+                note:  cols[8] ?? '',
+                extra: cols[9] ?? '',
+            }));
     })
     .catch(err => console.error('로드 실패:', err));
 
@@ -181,7 +197,7 @@
 
     <footer>
         <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
-        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ provided by XYZ012</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒprovided by XYZ012</p>
     </footer>
 </body>
 </html>
