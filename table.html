@@ -50,36 +50,49 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script>
-    // DPOPz DATABASE.xlsx와 투표 집계 결과를 병렬로 불러온 뒤 테이블 렌더링
+    // DPOPz DATABASE.xlsx (Sheet1=DB, Sheet2=배치표기준) + 투표 집계 결과를 병렬로 불러온 뒤 테이블 렌더링
     Promise.all([
         fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer()),
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
-    .then(([buffer, voteData]) => {
+    .then(([xlsxBuffer, voteData]) => {
         const voteResults = voteData.results || {};
 
-        const workbook = XLSX.read(buffer, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const xlsxRows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
+
+        // Sheet1: DB (Title+Difficulty → Option#1~3)
+        const sheet1 = workbook.Sheets[workbook.SheetNames[0]];
+        const dbRows = XLSX.utils.sheet_to_json(sheet1, { header: 1 }).slice(1);
+        const dbIndex = {};
+        dbRows.forEach(r => {
+            const key = `${String(r[1] ?? '').trim()}|${String(r[2] ?? '').trim()}`;
+            if (key !== '|') dbIndex[key] = r;
+        });
+
+        // Sheet2: 배치표 기준 (Version, Lv, Note, Extra)
+        const sheet2 = workbook.Sheets[workbook.SheetNames[1]];
+        const baseRows = XLSX.utils.sheet_to_json(sheet2, { header: 1 }).slice(1)
+            .filter(r => r[0] && String(r[0]).toUpperCase() !== 'OFF');
 
         const tbody = document.getElementById('table-body');
 
-        for (let i = 1; i < xlsxRows.length; i++) {
-            const r = xlsxRows[i];
-            if (!r[0] || String(r[0]).toUpperCase() === 'OFF') continue;
+        for (const r of baseRows) {
+            const title = String(r[2] ?? '').trim();
+            const diff  = String(r[3] ?? '').trim();
+            const db    = dbIndex[`${title}|${diff}`];
 
-            const rowTitle = String(r[2] ?? '').trim();
+            const rowTitle = title;
             const vote = voteResults[rowTitle] || {};
             const row = {
-                ver:   String(r[1] ?? '').trim(),
-                title: String(r[2] ?? '').trim(),
-                diff:  String(r[3] ?? '').trim(),
-                lv:    String(r[4] ?? '').trim(),
-                opt1:  String(r[5] ?? '').trim(),
-                opt2:  String(r[6] ?? '').trim(),
-                opt3:  String(r[7] ?? '').trim(),
-                note:  String(r[8] ?? '').trim(),
-                extra: String(r[9] ?? '').trim(),
+                ver:   String(r[1]  ?? '').trim(),
+                title: title,
+                diff:  diff,
+                lv:    String(r[4]  ?? '').trim(),
+                opt1:  db ? String(db[3] ?? '').trim() : '',
+                opt2:  db ? String(db[4] ?? '').trim() : '',
+                opt3:  db ? String(db[5] ?? '').trim() : '',
+                note:  String(r[8]  ?? '').trim(),
+                extra: String(r[9]  ?? '').trim(),
             };
 
             const tr = document.createElement('tr');
