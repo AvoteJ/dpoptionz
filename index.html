@@ -53,6 +53,8 @@
     <main>
         <h1 class="main-title"><span class="accent">D</span>ouble <span class="accent">P</span>lay Option<span class="accent" style="text-transform:none;">z</span></h1>
 
+        <p id="version-display" style="font-size:10pt; color:rgba(255,255,255,0.3); margin:0;"></p>
+
         <div class="search-box-container">
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="Title 검색..." oninput="showSuggestions()" onkeydown="if(event.key==='Enter') performSearch()">
@@ -65,37 +67,24 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
+<script src="version.js"></script>
 <script>
     let tableData = [];
     let voteResults = {};
-    let lvxIndex  = {};
 
-    function getLvx(title, diff) {
-        const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
-        const code = diffMap[diff] || diff.charAt(0).toUpperCase();
-        return lvxIndex[`${title}|${code}`] || '';
-    }
+    // 버전 표시
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById('version-display');
+        if (el && typeof APP_VERSION !== 'undefined') el.textContent = 'ver. ' + APP_VERSION;
+    });
 
-    // DPOPz DATABASE.xlsx (Sheet1=DB, Sheet2=배치표기준, Sheet3=Lv.x) + 투표 집계 결과를 병렬로 불러오기
+    // DPOPz DATABASE.xlsx (Sheet1=DB, Sheet2=배치표기준) + 투표 집계 결과를 병렬로 불러오기
     Promise.all([
         fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer()),
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
     .then(([xlsxBuffer, voteData]) => {
         voteResults = voteData.results || {};
-
-        // Sheet3 파싱: Lv.x 인덱스 구성
-        const wb3  = XLSX.read(xlsxBuffer, { type: 'array' });
-        const ws3  = wb3.Sheets[wb3.SheetNames[2]];
-        const r3   = XLSX.utils.sheet_to_json(ws3, { header: 1 });
-        r3.forEach(r => {
-            const lvx   = String(r[0] ?? '').trim();
-            const entry = String(r[1] ?? '').trim();
-            const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
-            if (m && lvx && !isNaN(parseFloat(lvx))) {
-                lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
-            }
-        });
 
         const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
 
@@ -191,7 +180,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>Lv.x</th><th>FLIP</th><th>1P(LEFT)</th><th>2P(RIGHT)</th><th>Note</th><th>Vote</th>
+                            <th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>FLIP</th><th>1P(LEFT)</th><th>2P(RIGHT)</th><th>Note</th><th>Vote</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -212,11 +201,9 @@
                     ? `<td><a href="vote.html?title=${encodeURIComponent(row.title)}" class="vote-btn">Vote</a></td>`
                     : `<td></td>`;
 
-                const lvx = getLvx(row.title, row.diff);
-                const lvxStyle = lvx ? ' style="color:rgba(180,220,255,0.9)"' : ' style="color:#666"';
                 html += `
                     <tr>
-                        <td>${row.ver}</td><td>${row.title}</td><td>${row.diff}</td><td>${row.lv}</td><td${lvxStyle}>${lvx}</td><td${opt1Style}>${opt1}</td><td${opt2Style}>${opt2}</td><td${opt3Style}>${opt3}</td><td>${row.note}</td>${voteCell}
+                        <td>${row.ver}</td><td>${row.title}</td><td>${row.diff}</td><td>${row.lv}</td><td${opt1Style}>${opt1}</td><td${opt2Style}>${opt2}</td><td${opt3Style}>${opt3}</td><td>${row.note}</td>${voteCell}
                     </tr>
                 `;
             });
