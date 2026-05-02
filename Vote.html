@@ -95,15 +95,12 @@
     </style>
 </head>
 <body>
-    <div style="width:100%; background-color:rgba(255,165,0,0.15); padding:10px 0; text-align:center; font-size:12pt; color:rgba(255,200,100,0.9);">
-        &lt;BETA OPEN&gt; 현재 페이지는 지속적으로 업데이트 중으로, 오류가 아직 많습니다. 또한, Vote DB 혼선 방지를 위해 투표 기능이 작동하지 않습니다.
-    </div>
 
     <header>
         <nav class="nav-container">
-            <a href="index.html" class="nav-link">Top</a>
-            <a href="table.html" class="nav-link">Table</a>
-            <a href="about.html" class="nav-link">About</a>
+            <a href="index.html" class="nav-link">&lt;Top&gt;</a>
+            <a href="table.html" class="nav-link">&lt;Table&gt;</a>
+            <a href="about.html" class="nav-link">&lt;About&gt;</a>
         </nav>
     </header>
 
@@ -111,6 +108,7 @@
         <!-- JS로 동적 생성 -->
     </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script>
     const params = new URLSearchParams(location.search);
@@ -120,10 +118,30 @@
     if (!title) {
         main.innerHTML = '<p class="not-found">곡 정보가 없습니다. <a href="table.html" style="color:rgba(255,255,255,0.6)">Table로 돌아가기</a></p>';
     } else {
-        // Apps Script에서 해당 곡 데이터 불러오기
-        fetch(`${APPS_SCRIPT_URL}?action=table`)
-            .then(res => res.json())
-            .then(tableRes => {
+        // DPOPz DATABASE.xlsx Sheet3(Lv.x) + Apps Script 병렬 로드
+        let lvxIndex = {};
+        function getLvx(title, diff) {
+            const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
+            const code = diffMap[diff] || diff.charAt(0).toUpperCase();
+            return lvxIndex[`${title}|${code}`] || '';
+        }
+
+        Promise.all([
+            fetch(`${APPS_SCRIPT_URL}?action=table`).then(res => res.json()),
+            fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer())
+        ])
+        .then(([tableRes, xlsxBuffer]) => {
+            // Sheet3 파싱
+            const wb  = XLSX.read(xlsxBuffer, { type: 'array' });
+            const ws3 = wb.Sheets[wb.SheetNames[2]];
+            XLSX.utils.sheet_to_json(ws3, { header: 1 }).forEach(r => {
+                const lvx   = String(r[0] ?? '').trim();
+                const entry = String(r[1] ?? '').trim();
+                const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
+                if (m && lvx && !isNaN(parseFloat(lvx))) {
+                    lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
+                }
+            });
                 const rows = tableRes.rows || [];
                 const row = rows.find(r => r.title === title);
 
@@ -145,6 +163,7 @@
                                 <th>Title</th>
                                 <th>Difficulty</th>
                                 <th>Lv</th>
+                                <th>Lv.x</th>
                                 <th>FLIP</th>
                                 <th>1P(LEFT)</th>
                                 <th>2P(RIGHT)</th>
@@ -157,6 +176,7 @@
                                 <td>${row.title || ''}</td>
                                 <td>${row.diff  || ''}</td>
                                 <td>${row.lv    || ''}</td>
+                                <td>${getLvx(row.title || '', row.diff || '')}</td>
                                 <td>${row.opt1  || ''}</td>
                                 <td>${row.opt2  || ''}</td>
                                 <td>${row.opt3  || ''}</td>
@@ -203,7 +223,8 @@
                     </div>
                 `;
             })
-            .catch(err => {
+        })
+        .catch(err => {
                 console.error('데이터 로드 실패:', err);
                 main.innerHTML = '<p class="not-found">데이터를 불러오지 못했습니다.</p>';
             });
@@ -275,7 +296,7 @@
 
     <footer>
         <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
-        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ provided by XYZ012</p>
     </footer>
 </body>
 </html>

@@ -29,8 +29,6 @@
         }
         .filter-btn:hover { background-color: rgba(255,255,255,0.1); }
         .filter-btn.active { background-color: rgba(255,255,255,0.2); border-color: white; color: white; }
-
-        /* 서브메뉴 */
         .sub-row {
             display: none; flex-wrap: wrap; gap: 6px;
             padding: 8px 12px;
@@ -63,7 +61,6 @@
     </header>
 
     <main>
-        <!-- 카테고리 필터 버튼 -->
         <div class="filter-area">
             <div class="filter-row">
                 <button class="filter-btn active" data-cat="ALL">ALL</button>
@@ -77,8 +74,7 @@
                 <button class="filter-btn" data-cat="UVWXYZ">U/V/W/X/Y/Z</button>
                 <button class="filter-btn" data-cat="OTHER">OTHER</button>
             </div>
-
-            <!-- ☆12 서브메뉴 -->
+            <!-- ☆12 서브메뉴 (Lv.x 기준) -->
             <div class="sub-row" id="sub-12">
                 <button class="sub-btn" data-sub-val="12.7">12.7</button>
                 <button class="sub-btn" data-sub-val="12.6">12.6</button>
@@ -91,8 +87,7 @@
                 <button class="sub-btn" data-sub-val="11.8">11.8</button>
                 <button class="sub-btn" data-sub-val="11.6">11.6</button>
             </div>
-
-            <!-- ☆11 서브메뉴 -->
+            <!-- ☆11 서브메뉴 (Lv.x 기준) -->
             <div class="sub-row" id="sub-11">
                 <button class="sub-btn" data-sub-val="12.1">12.1</button>
                 <button class="sub-btn" data-sub-val="12.0">12.0</button>
@@ -115,6 +110,7 @@
                     <th>Title</th>
                     <th>Difficulty</th>
                     <th>Lv</th>
+                    <th>Lv.x</th>
                     <th>FLIP</th>
                     <th>1P(LEFT)</th>
                     <th>2P(RIGHT)</th>
@@ -122,17 +118,24 @@
                     <th>Vote</th>
                 </tr>
             </thead>
-            <tbody id="table-body">
-            </tbody>
+            <tbody id="table-body"></tbody>
         </table>
     </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script>
-    let allRows    = [];
+    let allRows     = [];
     let voteResults = {};
-    let currentCat = 'ALL';
-    let currentSub = null;
+    let lvxIndex    = {}; // { 'Title|DiffCode': 'Lv.x값' }
+    let currentCat  = 'ALL';
+    let currentSub  = null;
+
+    function getLvx(title, diff) {
+        const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
+        const code = diffMap[diff] || diff.charAt(0).toUpperCase();
+        return lvxIndex[`${title}|${code}`] || '';
+    }
 
     const ALPHA_MAP = {
         'ABCD':   ['A','B','C','D'],
@@ -146,17 +149,26 @@
 
     function renderRow(row) {
         const rowTitle = row.title || '';
-        const vote = voteResults[rowTitle] || {};
-        const tr = document.createElement('tr');
+        const vote     = voteResults[rowTitle] || {};
+        const lvx      = getLvx(rowTitle, row.diff || '');
+        const tr       = document.createElement('tr');
 
+        // Version, Title, Difficulty, Lv
         ['ver', 'title', 'diff', 'lv'].forEach(key => {
             const td = document.createElement('td');
             td.textContent = row[key] || '';
             tr.appendChild(td);
         });
 
+        // Lv.x
+        const lvxTd = document.createElement('td');
+        lvxTd.textContent = lvx;
+        lvxTd.style.color = lvx ? 'rgba(180,220,255,0.9)' : '#666';
+        tr.appendChild(lvxTd);
+
+        // FLIP, 1P(LEFT), 2P(RIGHT)
         ['opt1', 'opt2', 'opt3'].forEach(key => {
-            const td = document.createElement('td');
+            const td  = document.createElement('td');
             const val = vote[key] || row[key] || '';
             td.textContent = val;
             if      (val === 'OFF')                          td.style.color = '#808080';
@@ -166,10 +178,12 @@
             tr.appendChild(td);
         });
 
+        // Note
         const noteTd = document.createElement('td');
         noteTd.textContent = row.note || '';
         tr.appendChild(noteTd);
 
+        // Vote 버튼
         const voteTd = document.createElement('td');
         if (row.extra) {
             const btn = document.createElement('a');
@@ -188,22 +202,18 @@
 
         allRows.filter(row => {
             const title = (row.title || '').trim();
-            const lv    = (row.lv    || '').trim();
+            const lvx   = getLvx(title, row.diff || '');   // Lv.x 기준
             const first = title.charAt(0).toUpperCase();
 
             if (currentCat === 'ALL') return true;
 
             if (currentCat === '12' || currentCat === '11') {
-                return currentSub ? lv === currentSub : true;
+                return currentSub ? lvx === currentSub : true;
             }
 
-            if (ALPHA_MAP[currentCat]) {
-                return ALPHA_MAP[currentCat].includes(first);
-            }
+            if (ALPHA_MAP[currentCat]) return ALPHA_MAP[currentCat].includes(first);
 
-            if (currentCat === 'OTHER') {
-                return !ALL_ALPHA.includes(first);
-            }
+            if (currentCat === 'OTHER') return !ALL_ALPHA.includes(first);
 
             return true;
         }).forEach(row => tbody.appendChild(renderRow(row)));
@@ -215,26 +225,21 @@
             const cat    = btn.dataset.cat;
             const hasSub = btn.dataset.sub === 'true';
 
-            // 같은 버튼 재클릭 → ALL 초기화
             if (currentCat === cat && cat !== 'ALL') {
-                currentCat = 'ALL';
-                currentSub = null;
+                currentCat = 'ALL'; currentSub = null;
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector('[data-cat="ALL"]').classList.add('active');
                 document.querySelectorAll('.sub-row').forEach(s => s.classList.remove('open'));
                 document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
-                applyFilter();
-                return;
+                applyFilter(); return;
             }
 
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentCat = cat;
-            currentSub = null;
+            currentCat = cat; currentSub = null;
             document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.sub-row').forEach(s => s.classList.remove('open'));
             if (hasSub) document.getElementById(`sub-${cat}`).classList.add('open');
-
             applyFilter();
         });
     });
@@ -243,14 +248,11 @@
     document.querySelectorAll('.sub-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const val = btn.dataset.subVal;
-
             if (currentSub === val) {
                 currentSub = null;
                 btn.classList.remove('active');
-                applyFilter();
-                return;
+                applyFilter(); return;
             }
-
             document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentSub = val;
@@ -261,17 +263,33 @@
     // 데이터 로드
     Promise.all([
         fetch(`${APPS_SCRIPT_URL}?action=table`).then(r => r.json()),
-        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
+        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} })),
+        fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer())
     ])
-    .then(([tableRes, voteData]) => {
-        allRows      = tableRes.rows || [];
-        voteResults  = voteData.results || {};
+    .then(([tableRes, voteData, xlsxBuffer]) => {
+        allRows     = tableRes.rows || [];
+        voteResults = voteData.results || {};
+
+        // Sheet3 파싱: Lv.x 인덱스 구성
+        const wb    = XLSX.read(xlsxBuffer, { type: 'array' });
+        const ws3   = wb.Sheets[wb.SheetNames[2]];
+        const rows3 = XLSX.utils.sheet_to_json(ws3, { header: 1 });
+        rows3.forEach(r => {
+            const lvx   = String(r[0] ?? '').trim();
+            const entry = String(r[1] ?? '').trim();
+            // entry 형식: "Title [X]"  X = A / L / H
+            const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
+            if (m && lvx && !isNaN(parseFloat(lvx))) {
+                lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
+            }
+        });
+
         applyFilter();
     })
     .catch(err => {
         console.error('로드 실패:', err);
         document.getElementById('table-body').innerHTML =
-            '<tr><td colspan="9">데이터를 불러오지 못했습니다.</td></tr>';
+            '<tr><td colspan="10">데이터를 불러오지 못했습니다.</td></tr>';
     });
 </script>
 
