@@ -69,8 +69,9 @@
 <script src="config.js"></script>
 <script src="version.js"></script>
 <script>
-    let tableData = [];
-    let voteResults = {};
+    let tableData     = [];
+    let voteResults   = {};
+    let optionDistrib = {};
 
     // 버전 표시
     document.addEventListener('DOMContentLoaded', () => {
@@ -78,48 +79,57 @@
         if (el && typeof APP_VERSION !== 'undefined') el.textContent = 'ver. ' + APP_VERSION;
     });
 
-    // DPOPz DATABASE.xlsx (Sheet1=DB, Sheet2=배치표기준) + 투표 집계 결과를 병렬로 불러오기
     Promise.all([
         fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
     .then(([xlsxBuffer, voteData]) => {
         voteResults = voteData.results || {};
-
         const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
 
-        // Sheet1: DB (Title+Difficulty → Option#1~3)
+        // Sheet1: 옵션 분포 인덱스 구성 (Timestamp=OFF 제외)
         const sheet1 = workbook.Sheets[workbook.SheetNames[0]];
-        const dbRows = XLSX.utils.sheet_to_json(sheet1, { header: 1 }).slice(1);
-        const dbIndex = {};
+        const dbRows = XLSX.utils.sheet_to_json(sheet1, { header: 1 }).slice(1)
+            .filter(r => String(r[0] ?? '').toUpperCase() !== 'OFF');
+
+        const distribMap = {};
         dbRows.forEach(r => {
-            const key = `${String(r[1] ?? '').trim()}|${String(r[2] ?? '').trim()}`;
-            if (key !== '|') dbIndex[key] = r;
+            const title = String(r[1] ?? '').trim();
+            const diff  = String(r[2] ?? '').trim();
+            const opt1  = String(r[3] ?? '').trim() || 'OFF';
+            const opt2  = String(r[4] ?? '').trim() || 'OFF';
+            const opt3  = String(r[5] ?? '').trim() || 'OFF';
+            if (!title || !diff) return;
+            const key   = `${title}|${diff}`;
+            const combo = `${opt1}|${opt2}|${opt3}`;
+            if (!distribMap[key]) distribMap[key] = {};
+            distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
         });
 
-        // Sheet2: 배치표 기준 (Version, Lv, Note, Extra)
+        optionDistrib = {};
+        Object.entries(distribMap).forEach(([key, combos]) => {
+            const total = Object.values(combos).reduce((a, b) => a + b, 0);
+            optionDistrib[key] = Object.entries(combos)
+                .sort((a, b) => b[1] - a[1])
+                .map(([combo, count]) => {
+                    const [o1, o2, o3] = combo.split('|');
+                    return { opt1: o1, opt2: o2, opt3: o3, count, pct: Math.round(count / total * 1000) / 10 };
+                });
+        });
+
+        // Sheet2: 배치표 기준
         const sheet2 = workbook.Sheets[workbook.SheetNames[1]];
         const baseRows = XLSX.utils.sheet_to_json(sheet2, { header: 1 }).slice(1)
             .filter(r => r[0] && String(r[0]).toUpperCase() !== 'OFF');
 
-        // Sheet2 기준으로 Sheet1 매칭 후 배치표 구성
-        tableData = baseRows.map(r => {
-            const title = String(r[2] ?? '').trim();
-            const diff  = String(r[3] ?? '').trim();
-            const db    = dbIndex[`${title}|${diff}`];
-
-            return {
-                ver:   String(r[1]  ?? '').trim(),
-                title: title,
-                diff:  diff,
-                lv:    String(r[4]  ?? '').trim(),
-                opt1:  db ? String(db[3] ?? '').trim() : '',  // DB Option#1 → FLIP
-                opt2:  db ? String(db[4] ?? '').trim() : '',  // DB Option#2 → 1P(LEFT)
-                opt3:  db ? String(db[5] ?? '').trim() : '',  // DB Option#3 → 2P(RIGHT)
-                note:  String(r[8]  ?? '').trim(),
-                extra: String(r[9]  ?? '').trim(),
-            };
-        });
+        tableData = baseRows.map(r => ({
+            ver:   String(r[1] ?? '').trim(),
+            title: String(r[2] ?? '').trim(),
+            diff:  String(r[3] ?? '').trim(),
+            lv:    String(r[4] ?? '').trim(),
+            note:  String(r[8] ?? '').trim(),
+            extra: String(r[9] ?? '').trim(),
+        }));
     })
     .catch(err => console.error('로드 실패:', err));
 
@@ -127,18 +137,15 @@
     const suggestionList = document.getElementById('suggestionList');
     const resultArea = document.getElementById('result-area');
 
-    // 연관 검색어 보여주기 (Title 단어 단위 + Version/Difficulty 부분 일치)
     function showSuggestions() {
         const query = input.value.toLowerCase();
         suggestionList.innerHTML = '';
-
         if (query.length > 0) {
             const filtered = tableData.filter(item => {
                 const titleWords = item.title.toLowerCase().split(/[\s\-～~†♦♥∮、。！？!?「」()（）\[\]]+/);
-                const titleMatch = titleWords.some(word => word === query);
-                const verMatch   = item.ver.toLowerCase().includes(query);
-                const diffMatch  = item.diff.toLowerCase().includes(query);
-                return titleMatch || verMatch || diffMatch;
+                return titleWords.some(word => word === query) ||
+                       item.ver.toLowerCase().includes(query) ||
+                       item.diff.toLowerCase().includes(query);
             });
             if (filtered.length > 0) {
                 suggestionList.style.display = 'block';
@@ -156,16 +163,56 @@
         }
     }
 
-    // 값에 따른 색상 반환
     function optColor(val) {
-        if (val === 'OFF')                         return ' style="color:#808080"';
-        if (val === 'MIRROR')                      return ' style="color:rgba(150,220,150,1)"';
-        if (val === 'RANDOM' || val === 'R-RANDOM') return ' style="color:#FFA500"';
-        if (val === 'S-RANDOM')                    return ' style="color:rgba(255,60,60,0.75)"';
-        return '';
+        if (val === 'OFF')                          return '#808080';
+        if (val === 'MIRROR')                       return 'rgba(150,220,150,1)';
+        if (val === 'RANDOM' || val === 'R-RANDOM') return '#FFA500';
+        if (val === 'S-RANDOM')                     return 'rgba(255,60,60,0.75)';
+        return 'rgba(255,255,255,0.9)';
     }
 
-    // 검색 실행 및 표 그리기 (Title 완전 일치 또는 Version/Difficulty 부분 일치)
+    function renderOptionCell(title, diff) {
+        const td = document.createElement('td');
+        td.style.textAlign = 'left';
+        td.style.lineHeight = '1.8';
+        const distrib = optionDistrib[`${title}|${diff}`] || [];
+
+        function makeSpan(opt1, opt2, opt3) {
+            const span = document.createElement('span');
+            const parts = [];
+            if (opt1 !== 'OFF') { parts.push({ val: opt1 }); parts.push({ val: ', ', plain: true }); }
+            parts.push({ val: opt2 });
+            parts.push({ val: '/', plain: true });
+            parts.push({ val: opt3 });
+            parts.forEach(p => {
+                if (p.plain) { span.appendChild(document.createTextNode(p.val)); }
+                else { const s = document.createElement('span'); s.textContent = p.val; s.style.color = optColor(p.val); span.appendChild(s); }
+            });
+            return span;
+        }
+
+        if (distrib.length === 0) {
+            td.style.color = '#666'; td.textContent = '-';
+        } else if (distrib.length === 1) {
+            td.appendChild(makeSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
+        } else {
+            distrib.forEach((d, i) => {
+                const line = document.createElement('div');
+                const prefix = document.createElement('span');
+                prefix.textContent = `[${i + 1}] `;
+                prefix.style.color = 'rgba(255,255,255,0.4)';
+                line.appendChild(prefix);
+                line.appendChild(makeSpan(d.opt1, d.opt2, d.opt3));
+                const pct = document.createElement('span');
+                pct.textContent = ` (${d.pct}%)`;
+                pct.style.color = 'rgba(255,255,255,0.35)';
+                line.appendChild(pct);
+                td.appendChild(line);
+            });
+        }
+        return td;
+    }
+
     function performSearch() {
         const query = input.value.toLowerCase();
         suggestionList.style.display = 'none';
@@ -176,39 +223,31 @@
         );
 
         if (results.length > 0) {
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>FLIP</th><th>1P(LEFT)</th><th>2P(RIGHT)</th><th>Note</th><th>Vote</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            thead.innerHTML = `<tr><th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>Option</th><th>Note</th><th>Vote</th></tr>`;
+            table.appendChild(thead);
+            const tbody = document.createElement('tbody');
             results.forEach(row => {
-                const vote = voteResults[row.title] || {};
-
-                // table.html과 동일: vote 결과 우선, 없으면 DB 매칭값
-                const opt1 = vote.opt1 || row.opt1 || '';
-                const opt2 = vote.opt2 || row.opt2 || '';
-                const opt3 = vote.opt3 || row.opt3 || '';
-
-                const opt1Style = optColor(opt1);
-                const opt2Style = optColor(opt2);
-                const opt3Style = optColor(opt3);
-
-                const voteCell = row.extra
-                    ? `<td><a href="vote.html?title=${encodeURIComponent(row.title)}" class="vote-btn">Vote</a></td>`
-                    : `<td></td>`;
-
-                html += `
-                    <tr>
-                        <td>${row.ver}</td><td>${row.title}</td><td>${row.diff}</td><td>${row.lv}</td><td${opt1Style}>${opt1}</td><td${opt2Style}>${opt2}</td><td${opt3Style}>${opt3}</td><td>${row.note}</td>${voteCell}
-                    </tr>
-                `;
+                const tr = document.createElement('tr');
+                ['ver','title','diff','lv'].forEach(key => {
+                    const td = document.createElement('td'); td.textContent = row[key] || ''; tr.appendChild(td);
+                });
+                tr.appendChild(renderOptionCell(row.title, row.diff));
+                const noteTd = document.createElement('td'); noteTd.textContent = row.note || ''; tr.appendChild(noteTd);
+                const voteTd = document.createElement('td');
+                if (row.extra) {
+                    const btn = document.createElement('a');
+                    btn.href = `vote.html?title=${encodeURIComponent(row.title)}`;
+                    btn.textContent = 'Vote'; btn.className = 'vote-btn';
+                    voteTd.appendChild(btn);
+                }
+                tr.appendChild(voteTd);
+                tbody.appendChild(tr);
             });
-            html += `</tbody></table>`;
-            resultArea.innerHTML = html;
+            table.appendChild(tbody);
+            resultArea.innerHTML = '';
+            resultArea.appendChild(table);
         } else {
             resultArea.innerHTML = '<p style="text-align:center;">검색 결과가 없습니다.</p>';
         }

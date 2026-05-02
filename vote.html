@@ -128,11 +128,12 @@
 
         Promise.all([
             fetch(`${APPS_SCRIPT_URL}?action=table`).then(res => res.json()),
-            fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer())
+            fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer())
         ])
         .then(([tableRes, xlsxBuffer]) => {
-            // Sheet3 파싱
             const wb  = XLSX.read(xlsxBuffer, { type: 'array' });
+
+            // Sheet3: Lv.x 인덱스
             const ws3 = wb.Sheets[wb.SheetNames[2]];
             XLSX.utils.sheet_to_json(ws3, { header: 1 }).forEach(r => {
                 const lvx   = String(r[0] ?? '').trim();
@@ -142,8 +143,60 @@
                     lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
                 }
             });
-                const rows = tableRes.rows || [];
-                const row = rows.find(r => r.title === title);
+
+            // Sheet1: 옵션 분포 인덱스 구성 (Timestamp=OFF 제외)
+            const ws1 = wb.Sheets[wb.SheetNames[0]];
+            const distribMap = {};
+            XLSX.utils.sheet_to_json(ws1, { header: 1 }).slice(1)
+                .filter(r => String(r[0] ?? '').toUpperCase() !== 'OFF')
+                .forEach(r => {
+                    const t    = String(r[1] ?? '').trim();
+                    const d    = String(r[2] ?? '').trim();
+                    const opt1 = String(r[3] ?? '').trim() || 'OFF';
+                    const opt2 = String(r[4] ?? '').trim() || 'OFF';
+                    const opt3 = String(r[5] ?? '').trim() || 'OFF';
+                    if (!t || !d) return;
+                    const key   = `${t}|${d}`;
+                    const combo = `${opt1}|${opt2}|${opt3}`;
+                    if (!distribMap[key]) distribMap[key] = {};
+                    distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
+                });
+
+            const optionDistrib = {};
+            Object.entries(distribMap).forEach(([key, combos]) => {
+                const total = Object.values(combos).reduce((a, b) => a + b, 0);
+                optionDistrib[key] = Object.entries(combos)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([combo, count]) => {
+                        const [o1, o2, o3] = combo.split('|');
+                        return { opt1: o1, opt2: o2, opt3: o3, count, pct: Math.round(count / total * 1000) / 10 };
+                    });
+            });
+
+            function optColor(val) {
+                if (val === 'OFF')                          return '#808080';
+                if (val === 'MIRROR')                       return 'rgba(150,220,150,1)';
+                if (val === 'RANDOM' || val === 'R-RANDOM') return '#FFA500';
+                if (val === 'S-RANDOM')                     return 'rgba(255,60,60,0.75)';
+                return 'rgba(255,255,255,0.9)';
+            }
+
+            function makeOptionSpan(opt1, opt2, opt3) {
+                const span = document.createElement('span');
+                const parts = [];
+                if (opt1 !== 'OFF') { parts.push({ val: opt1 }); parts.push({ val: ', ', plain: true }); }
+                parts.push({ val: opt2 });
+                parts.push({ val: '/', plain: true });
+                parts.push({ val: opt3 });
+                parts.forEach(p => {
+                    if (p.plain) { span.appendChild(document.createTextNode(p.val)); }
+                    else { const s = document.createElement('span'); s.textContent = p.val; s.style.color = optColor(p.val); span.appendChild(s); }
+                });
+                return span;
+            }
+
+            const rows = tableRes.rows || [];
+            const row = rows.find(r => r.title === title);
 
                 // difficulty를 submitVote()에서 참조할 수 있도록 저장
                 window._voteTitle      = row ? row.title : title;
@@ -164,9 +217,7 @@
                                 <th>Difficulty</th>
                                 <th>Lv</th>
                                 <th>Lv.x</th>
-                                <th>FLIP</th>
-                                <th>1P(LEFT)</th>
-                                <th>2P(RIGHT)</th>
+                                <th>Option</th>
                                 <th>Note</th>
                             </tr>
                         </thead>
@@ -177,9 +228,7 @@
                                 <td>${row.diff  || ''}</td>
                                 <td>${row.lv    || ''}</td>
                                 <td>${getLvx(row.title || '', row.diff || '')}</td>
-                                <td>${row.opt1  || ''}</td>
-                                <td>${row.opt2  || ''}</td>
-                                <td>${row.opt3  || ''}</td>
+                                <td id="option-cell" style="text-align:left; line-height:1.8;"></td>
                                 <td>${row.note  || ''}</td>
                             </tr>
                         </tbody>
@@ -222,7 +271,29 @@
                         <div class="result-msg" id="resultMsg"></div>
                     </div>
                 `;
-            })
+
+                // option-cell 에 분포 데이터 채우기
+                const optCell = document.getElementById('option-cell');
+                const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
+                if (distrib.length === 0) {
+                    optCell.style.color = '#666'; optCell.textContent = '-';
+                } else if (distrib.length === 1) {
+                    optCell.appendChild(makeOptionSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
+                } else {
+                    distrib.forEach((d, i) => {
+                        const line = document.createElement('div');
+                        const prefix = document.createElement('span');
+                        prefix.textContent = `[${i + 1}] `;
+                        prefix.style.color = 'rgba(255,255,255,0.4)';
+                        line.appendChild(prefix);
+                        line.appendChild(makeOptionSpan(d.opt1, d.opt2, d.opt3));
+                        const pct = document.createElement('span');
+                        pct.textContent = ` (${d.pct}%)`;
+                        pct.style.color = 'rgba(255,255,255,0.35)';
+                        line.appendChild(pct);
+                        optCell.appendChild(line);
+                    });
+                }
         })
         .catch(err => {
                 console.error('데이터 로드 실패:', err);
