@@ -108,6 +108,7 @@
         <!-- JS로 동적 생성 -->
     </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script>
     const params = new URLSearchParams(location.search);
@@ -117,35 +118,38 @@
     if (!title) {
         main.innerHTML = '<p class="not-found">곡 정보가 없습니다. <a href="table.html" style="color:rgba(255,255,255,0.6)">Table로 돌아가기</a></p>';
     } else {
-        // TABLE.csv에서 해당 곡 데이터 불러오기
-        fetch('TABLE.csv')
-            .then(res => res.arrayBuffer())
-            .then(buffer => {
-                const text = new TextDecoder('utf-8').decode(buffer);
+        // DPOPz DATABASE.xlsx Sheet3(Lv.x) + Apps Script 병렬 로드
+        let lvxIndex = {};
+        function getLvx(title, diff) {
+            const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
+            const code = diffMap[diff] || diff.charAt(0).toUpperCase();
+            return lvxIndex[`${title}|${code}`] || '';
+        }
 
-                function parseCSVLine(line) {
-                    const cols = [];
-                    let current = '';
-                    let inQuotes = false;
-                    for (let i = 0; i < line.length; i++) {
-                        const ch = line[i];
-                        if (ch === '"') { inQuotes = !inQuotes; }
-                        else if (ch === ',' && !inQuotes) { cols.push(current.trim()); current = ''; }
-                        else { current += ch; }
-                    }
-                    cols.push(current.trim());
-                    return cols;
+        Promise.all([
+            fetch(`${APPS_SCRIPT_URL}?action=table`).then(res => res.json()),
+            fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer())
+        ])
+        .then(([tableRes, xlsxBuffer]) => {
+            // Sheet3 파싱
+            const wb  = XLSX.read(xlsxBuffer, { type: 'array' });
+            const ws3 = wb.Sheets[wb.SheetNames[2]];
+            XLSX.utils.sheet_to_json(ws3, { header: 1 }).forEach(r => {
+                const lvx   = String(r[0] ?? '').trim();
+                const entry = String(r[1] ?? '').trim();
+                const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
+                if (m && lvx && !isNaN(parseFloat(lvx))) {
+                    lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
                 }
+            });
+                const rows = tableRes.rows || [];
+                const row = rows.find(r => r.title === title);
 
-                const lines = text.trim().split('\n');
-                const cols = lines.slice(1)
-                    .map(l => parseCSVLine(l))
-                    .find(c => c[2] && c[2].trim() === title);
+                // difficulty를 submitVote()에서 참조할 수 있도록 저장
+                window._voteTitle      = row ? row.title : title;
+                window._voteDifficulty = row ? (row.diff || '') : '';
 
-                window._voteTitle      = cols ? cols[2].trim() : title;
-                window._voteDifficulty = cols ? (cols[3]?.trim() ?? '') : '';
-
-                if (!cols) {
+                if (!row) {
                     main.innerHTML = `<p class="not-found">"${title}" 곡을 찾을 수 없습니다. <a href="table.html" style="color:rgba(255,255,255,0.6)">Table로 돌아가기</a></p>`;
                     return;
                 }
@@ -159,6 +163,7 @@
                                 <th>Title</th>
                                 <th>Difficulty</th>
                                 <th>Lv</th>
+                                <th>Lv.x</th>
                                 <th>FLIP</th>
                                 <th>1P(LEFT)</th>
                                 <th>2P(RIGHT)</th>
@@ -167,14 +172,15 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>${cols[1] ?? ''}</td>
-                                <td>${cols[2] ?? ''}</td>
-                                <td>${cols[3] ?? ''}</td>
-                                <td>${cols[4] ?? ''}</td>
-                                <td>${cols[5] ?? ''}</td>
-                                <td>${cols[6] ?? ''}</td>
-                                <td>${cols[7] ?? ''}</td>
-                                <td>${cols[8] ?? ''}</td>
+                                <td>${row.ver  || ''}</td>
+                                <td>${row.title || ''}</td>
+                                <td>${row.diff  || ''}</td>
+                                <td>${row.lv    || ''}</td>
+                                <td>${getLvx(row.title || '', row.diff || '')}</td>
+                                <td>${row.opt1  || ''}</td>
+                                <td>${row.opt2  || ''}</td>
+                                <td>${row.opt3  || ''}</td>
+                                <td>${row.note  || ''}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -217,8 +223,9 @@
                     </div>
                 `;
             })
-            .catch(err => {
-                console.error('CSV 로드 실패:', err);
+        })
+        .catch(err => {
+                console.error('데이터 로드 실패:', err);
                 main.innerHTML = '<p class="not-found">데이터를 불러오지 못했습니다.</p>';
             });
     }
@@ -289,7 +296,7 @@
 
     <footer>
         <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
-        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ provided by XYZ012</p>
     </footer>
 </body>
 </html>
