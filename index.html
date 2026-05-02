@@ -80,7 +80,7 @@
 
     // DPOPz DATABASE.xlsx (Sheet1=DB, Sheet2=배치표기준) + 투표 집계 결과를 병렬로 불러오기
     Promise.all([
-        fetch('DPOPz DATABASE.xlsx').then(r => r.arrayBuffer()),
+        fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
     .then(([xlsxBuffer, voteData]) => {
