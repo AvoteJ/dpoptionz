@@ -238,7 +238,7 @@
                 const voteTd = document.createElement('td');
                 if (row.extra) {
                     const btn = document.createElement('a');
-                    btn.href = `vote.html?title=${encodeURIComponent(row.title)}`;
+                    btn.href = `vote.html?title=${encodeURIComponent(row.title)}&diff=${encodeURIComponent(row.diff || '')}`;
                     btn.textContent = 'Vote'; btn.className = 'vote-btn';
                     voteTd.appendChild(btn);
                 }

@@ -126,12 +126,9 @@
             return lvxIndex[`${title}|${code}`] || '';
         }
 
-        Promise.all([
-            fetch(`${APPS_SCRIPT_URL}?action=table`).then(res => res.json()),
-            fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer())
-        ])
-        .then(([tableRes, xlsxBuffer]) => {
-            const wb  = XLSX.read(xlsxBuffer, { type: 'array' });
+        fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer())
+        .then(xlsxBuffer => {
+            const wb = XLSX.read(xlsxBuffer, { type: 'array' });
 
             // Sheet3: Lv.x 인덱스
             const ws3 = wb.Sheets[wb.SheetNames[2]];
@@ -195,8 +192,26 @@
                 return span;
             }
 
-            const rows = tableRes.rows || [];
-            const row = rows.find(r => r.title === title);
+            // Sheet2: 배치표에서 곡 정보 조회 (URL의 title + diff 파라미터로 매칭)
+            const urlDiff = params.get('diff') || '';
+            const ws2  = wb.Sheets[wb.SheetNames[1]];
+            const sheet2Rows = XLSX.utils.sheet_to_json(ws2, { header: 1 }).slice(1)
+                .filter(r => r[0] && String(r[0]).toUpperCase() !== 'OFF');
+
+            // title 일치하는 행 전체 수집 (diff 파라미터 있으면 추가 필터)
+            let matched = sheet2Rows.filter(r => String(r[2] ?? '').trim() === title);
+            if (urlDiff && matched.length > 1) {
+                const filtered = matched.filter(r => String(r[3] ?? '').trim() === urlDiff);
+                if (filtered.length > 0) matched = filtered;
+            }
+            const r0   = matched[0];
+            const row  = r0 ? {
+                ver:   String(r0[1] ?? '').trim(),
+                title: String(r0[2] ?? '').trim(),
+                diff:  String(r0[3] ?? '').trim(),
+                lv:    String(r0[4] ?? '').trim(),
+                note:  String(r0[8] ?? '').trim(),
+            } : null;
 
                 // difficulty를 submitVote()에서 참조할 수 있도록 저장
                 window._voteTitle      = row ? row.title : title;

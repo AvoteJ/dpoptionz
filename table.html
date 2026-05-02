@@ -156,13 +156,15 @@
 
     function renderOptionSpan(opt1, opt2, opt3) {
         const span = document.createElement('span');
-        const parts = [
-            { val: opt1 },
-            { val: ', ' , plain: true },
-            { val: opt2 },
-            { val: '/' , plain: true },
-            { val: opt3 },
-        ];
+        const flipVisible = opt1 !== 'OFF';
+        const parts = [];
+        if (flipVisible) {
+            parts.push({ val: opt1 });
+            parts.push({ val: ', ', plain: true });
+        }
+        parts.push({ val: opt2 });
+        parts.push({ val: '/', plain: true });
+        parts.push({ val: opt3 });
         parts.forEach(p => {
             if (p.plain) {
                 span.appendChild(document.createTextNode(p.val));
@@ -234,7 +236,7 @@
         const voteTd = document.createElement('td');
         if (row.extra) {
             const btn = document.createElement('a');
-            btn.href = `vote.html?title=${encodeURIComponent(rowTitle)}`;
+            btn.href = `vote.html?title=${encodeURIComponent(rowTitle)}&diff=${encodeURIComponent(row.diff || '')}`;
             btn.textContent = 'Vote';
             btn.className = 'vote-btn';
             voteTd.appendChild(btn);
