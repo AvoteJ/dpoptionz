@@ -5,4 +5,4 @@
 // index.html과 about.html에 모두 반영됩니다.
 // =============================================
 
-const APP_VERSION = '26.04.31[BETA]';
+const APP_VERSION = '26.05.02[BETA]';
