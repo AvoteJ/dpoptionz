@@ -53,6 +53,8 @@
     <main>
         <h1 class="main-title"><span class="accent">D</span>ouble <span class="accent">P</span>lay Option<span class="accent" style="text-transform:none;">z</span></h1>
 
+        <p id="version-display" style="font-size:10pt; color:rgba(255,255,255,0.3); margin:0;"></p>
+
         <div class="search-box-container">
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="Title 검색..." oninput="showSuggestions()" onkeydown="if(event.key==='Enter') performSearch()">
@@ -65,9 +67,16 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
+<script src="version.js"></script>
 <script>
     let tableData = [];
     let voteResults = {};
+
+    // 버전 표시
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById('version-display');
+        if (el && typeof APP_VERSION !== 'undefined') el.textContent = 'ver. ' + APP_VERSION;
+    });
 
     // DPOPz DATABASE.xlsx (Sheet1=DB, Sheet2=배치표기준) + 투표 집계 결과를 병렬로 불러오기
     Promise.all([

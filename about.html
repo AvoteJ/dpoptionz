@@ -62,9 +62,17 @@
         </div>
 
         <div class="about-block">
-            <p class="version">제작 버전 : 26.04.31[BETA]</p>
+            <p class="version" id="version-display">제작 버전 : 26.04.31[BETA]</p>
         </div>
     </main>
+
+<script src="version.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById('version-display');
+        if (el && typeof APP_VERSION !== 'undefined') el.textContent = '제작 버전 : ' + APP_VERSION;
+    });
+</script>
 
     <footer>
         <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
