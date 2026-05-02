@@ -207,7 +207,12 @@
 
             if (currentCat === 'ALL') return true;
 
-            if (currentCat === '12' || currentCat === '11') {
+            if (currentCat === '12') {
+                if (String(row.lv).trim() !== '12') return false;
+                return currentSub ? lvx === currentSub : true;
+            }
+            if (currentCat === '11') {
+                if (String(row.lv).trim() !== '11') return false;
                 return currentSub ? lvx === currentSub : true;
             }
 
