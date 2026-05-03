@@ -9,28 +9,48 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ── 1. 상단 배너 ─────────────────────────
+    // ── 1. 상단 배너 (스크롤 마퀴) ──────────
     const bannerEl = document.getElementById('site-banner');
     if (bannerEl) {
         const lines = (typeof BANNER_LINES !== 'undefined') ? BANNER_LINES : [];
         const label = (typeof BANNER_LABEL !== 'undefined') ? BANNER_LABEL : '';
 
         if (lines.length > 0) {
-            let html = '<div style="display:flex;align-items:flex-start;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 20px;">';
+            // 문장들을 구분자로 이어붙임 (2벌 반복으로 끊김 없이 순환)
+            const separator = '\u00a0\u00a0\u00a0\u00a0\u00a0|\u00a0\u00a0\u00a0\u00a0\u00a0';
+            const text = lines.join(separator);
+            const doubled = text + separator + text;
 
-            // 왼쪽 라벨 (진한 색)
-            if (label) {
-                html += `<span style="color:rgba(220,150,30,1);font-weight:bold;white-space:nowrap;flex-shrink:0;padding-top:1px;">${label}</span>`;
+            bannerEl.innerHTML = `
+                <div style="display:flex;align-items:center;overflow:hidden;width:100%;height:100%;padding:0;">
+                    ${ label ? `<span style="color:rgba(220,150,30,1);font-weight:bold;white-space:nowrap;flex-shrink:0;padding:0 14px 0 16px;">${label}</span><span style="color:rgba(255,200,100,0.5);flex-shrink:0;padding-right:10px;">|</span>` : '' }
+                    <div style="overflow:hidden;flex:1;position:relative;">
+                        <div id="banner-scroll-track" style="
+                            display:inline-block;
+                            white-space:nowrap;
+                            animation: bannerScroll 38s linear infinite;
+                            padding-left:40px;
+                        ">${doubled}</div>
+                    </div>
+                </div>
+            `;
+
+            // CSS 애니메이션 주입 (한 번만)
+            if (!document.getElementById('banner-scroll-style')) {
+                const style = document.createElement('style');
+                style.id = 'banner-scroll-style';
+                style.textContent = `
+                    @keyframes bannerScroll {
+                        0%   { transform: translateX(0); }
+                        100% { transform: translateX(-50%); }
+                    }
+                    #banner-scroll-track:hover {
+                        animation-play-state: paused;
+                    }
+                `;
+                document.head.appendChild(style);
             }
 
-            // 오른쪽 문장들
-            html += '<div style="text-align:left;line-height:2.0;">';
-            lines.forEach(line => {
-                html += `<div>${line}</div>`;
-            });
-            html += '</div></div>';
-
-            bannerEl.innerHTML = html;
             bannerEl.style.display = '';
         } else {
             bannerEl.style.display = 'none';
