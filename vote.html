@@ -129,8 +129,15 @@
 <script src="config.js"></script>
 <script src="session.js"></script>
 <script>
-    // 로그인 세션 확인 → 없으면 login.html로 이동
-    const _session = requireLogin(location.href);
+    // 로그인 세션 확인 → 없으면 login.html로 이동 후 실행 중단
+    (function() {
+        const s = checkSession();
+        if (!s) {
+            sessionStorage.setItem('dpopz_returnTo', location.href);
+            location.href = 'login.html';
+            throw new Error('redirect to login');
+        }
+    })();
 
     const params = new URLSearchParams(location.search);
     const title = params.get('title');
