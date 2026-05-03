@@ -247,7 +247,7 @@
 
             <a href="signup.html" class="signup-link">Sign up</a>
 
-            <p class="session-info">세션은 다음날 오전 5시에 만료됩니다</p>
+            <p class="session-info">Session expires at 5:00 AM the next day (KST)</p>
             <p class="not-approved-msg" id="notApprovedMsg">
                 Your login is not approved.<br>Please proceed with the login after approval.
             </p>
@@ -260,7 +260,7 @@
 <script src="session.js"></script>
 <script src="nav.js"></script>
 <script>
-    // 로그인 처리
+    // Login
     async function doLogin() {
         const id  = document.getElementById('loginId').value.trim();
         const pw  = document.getElementById('loginPw').value;
@@ -268,12 +268,12 @@
         const err = document.getElementById('errorMsg');
 
         if (!id || !pw) {
-            showError('ID와 Password를 입력해주세요.');
+            showError('Please enter your ID and Password.');
             return;
         }
 
         btn.disabled = true;
-        btn.textContent = '확인 중...';
+        btn.textContent = 'Verifying...';
         err.style.display = 'none';
         document.getElementById('notApprovedMsg').style.display = 'none';
 
@@ -293,12 +293,12 @@
                 btn.disabled = false;
                 btn.textContent = 'Login';
             } else {
-                showError(data.message || 'ID 또는 Password가 올바르지 않습니다.');
+                showError(data.message || 'ID or Password is invalid.');
                 btn.disabled = false;
                 btn.textContent = 'Login';
             }
         } catch (e) {
-            showError('서버에 연결할 수 없습니다.');
+            showError('Could not connect to the server.');
             btn.disabled = false;
             btn.textContent = 'Login';
         }
@@ -310,7 +310,7 @@
         err.style.display = 'block';
     }
 
-    // 이미 로그인된 경우 리다이렉트
+    // Redirect if already logged in
     window.addEventListener('DOMContentLoaded', () => {
         const session = checkSession();
         if (session) {
