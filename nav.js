@@ -49,47 +49,41 @@ document.addEventListener('DOMContentLoaded', () => {
             navEl.appendChild(a);
         });
 
-        // How to use 링크 (nav 아래 별도 줄)
+        // How to use 링크
         const how2useWrap = document.getElementById('how2use-link');
         if (how2useWrap) {
             const a = document.createElement('a');
-            a.href      = 'how2use.html';
+            a.href        = 'how2use.html';
             a.textContent = 'How to use DPOPz?';
             a.style.cssText = 'color:rgba(255,165,0,0.9); text-decoration:underline; font-size:10pt; cursor:pointer;';
             a.onmouseover = () => { a.style.color = 'rgba(255,140,0,1)'; };
             a.onmouseout  = () => { a.style.color = 'rgba(255,165,0,0.9)'; };
             how2useWrap.appendChild(a);
         }
-    }
 
-    // ── 3. Login / Logout 버튼 ───────────────
-    const authEl = document.getElementById('auth-btn-container');
-    if (authEl) {
+        // ── 3. Login / Logout 버튼 (nav 오른쪽 끝) ──
         const session = (typeof checkSession === 'function') ? checkSession() : null;
-        const current = location.pathname.split('/').pop() || 'index.html';
-        const btn = document.createElement('button');
 
         if (session) {
-            // 로그인 상태 → Logout
-            btn.textContent = 'Log Out';
-            btn.className   = 'auth-corner-btn logout';
-            btn.onclick     = () => {
+            const btn = document.createElement('button');
+            btn.textContent  = 'Log Out';
+            btn.className    = 'auth-corner-btn logout';
+            btn.style.marginLeft = 'auto';
+            btn.onclick = () => {
                 if (typeof clearSession === 'function') clearSession();
                 location.href = 'login.html';
             };
-            authEl.appendChild(btn);
-        } else {
-            // 미로그인 상태 → Login
-            // login / signup 페이지에서는 버튼 표시 안 함
-            if (current !== 'login.html' && current !== 'signup.html') {
-                btn.textContent = 'Log In';
-                btn.className   = 'auth-corner-btn login';
-                btn.onclick     = () => {
-                    sessionStorage.setItem('dpopz_returnTo', location.href);
-                    location.href = 'login.html';
-                };
-                authEl.appendChild(btn);
-            }
+            navEl.appendChild(btn);
+        } else if (current !== 'login.html' && current !== 'signup.html') {
+            const btn = document.createElement('button');
+            btn.textContent  = 'Log In';
+            btn.className    = 'auth-corner-btn login';
+            btn.style.marginLeft = 'auto';
+            btn.onclick = () => {
+                sessionStorage.setItem('dpopz_returnTo', location.href);
+                location.href = 'login.html';
+            };
+            navEl.appendChild(btn);
         }
     }
 

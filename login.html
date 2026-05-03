@@ -164,7 +164,7 @@
 
         /* ── 공통 네비게이션 ── */
         header { width: 100%; padding: 20px 0; }
-        .nav-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .nav-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; align-items: center; width: 100%; padding: 0 20px; box-sizing: border-box; }
         .nav-link {
             text-decoration: none;
             color: rgba(255, 255, 255, 0.8);
@@ -183,12 +183,6 @@
         }
 
         /* ── 오른쪽 상단 Login / Logout 버튼 ── */
-        #auth-btn-container {
-            position: fixed;
-            top: 14px;
-            right: 18px;
-            z-index: 9999;
-        }
         .auth-corner-btn {
             padding: 7px 16px;
             border-radius: 4px;
@@ -212,8 +206,6 @@
     </style>
 </head>
 <body>
-
-    <div id="auth-btn-container"></div>
     <div id="site-banner"></div>
 
     <header>
