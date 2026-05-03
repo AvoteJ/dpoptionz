@@ -185,8 +185,18 @@
                 <input type="password" id="signPw" class="field-input"
                     maxlength="30"
                     oninput="validatePw()"
-                    onkeydown="if(event.key==='Enter') document.getElementById('signIidx').focus()">
+                    onkeydown="if(event.key==='Enter') document.getElementById('signPwConfirm').focus()">
                 <span class="field-hint" id="hintPw">6자 이상, 영문+숫자를 포함해야 합니다.</span>
+            </div>
+
+            <!-- PASSWORD 확인 -->
+            <div class="field-row">
+                <span class="field-label">Password 확인</span>
+                <input type="password" id="signPwConfirm" class="field-input"
+                    maxlength="30"
+                    oninput="validatePwConfirm()"
+                    onkeydown="if(event.key==='Enter') document.getElementById('signIidx').focus()">
+                <span class="field-hint" id="hintPwConfirm">Password를 한 번 더 입력해주세요.</span>
             </div>
 
             <!-- IIDX ID -->
@@ -291,7 +301,21 @@
         }
     }
 
-    function setFieldState(input, hint, state, msg) {
+    function validatePwConfirm() {
+        const pw      = document.getElementById('signPw').value;
+        const confirm = document.getElementById('signPwConfirm').value;
+        const inp     = document.getElementById('signPwConfirm');
+        const hint    = document.getElementById('hintPwConfirm');
+        if (confirm.length === 0) {
+            setFieldState(inp, hint, '', 'Password를 한 번 더 입력해주세요.');
+        } else if (pw === confirm) {
+            setFieldState(inp, hint, 'ok', '일치합니다 ✓');
+        } else {
+            setFieldState(inp, hint, 'error', 'Password가 일치하지 않습니다.');
+        }
+    }
+
+    
         input.className = 'field-input' + (state ? ' ' + state : '');
         hint.className  = 'field-hint'  + (state ? ' ' + state : '');
         hint.textContent = msg;
@@ -299,18 +323,19 @@
 
     // ── 제출 ────────────────────────────────────────────────
     async function doSignup() {
-        // 전체 재검증
-        validateId(); validatePw(); validateIidx(); validateEmail();
+        validateId(); validatePw(); validatePwConfirm(); validateIidx(); validateEmail();
 
-        const id    = document.getElementById('signId').value.trim();
-        const pw    = document.getElementById('signPw').value;
-        const iidx  = document.getElementById('signIidx').value;
-        const email = document.getElementById('signEmail').value.trim();
+        const id      = document.getElementById('signId').value.trim();
+        const pw      = document.getElementById('signPw').value;
+        const pwConf  = document.getElementById('signPwConfirm').value;
+        const iidx    = document.getElementById('signIidx').value;
+        const email   = document.getElementById('signEmail').value.trim();
 
-        if (id.length < 6)                                      return showResult('error', 'ID는 6자 이상이어야 합니다.');
-        if (pw.length < 6 || !/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) return showResult('error', 'Password 조건을 확인해주세요.');
-        if (!/^\d{8}$/.test(iidx))                              return showResult('error', 'IIDX ID는 8자리 숫자여야 합니다.');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))         return showResult('error', '이메일 형식을 확인해주세요.');
+        if (id.length < 6)                                                   return showResult('error', 'ID는 6자 이상이어야 합니다.');
+        if (pw.length < 6 || !/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw))    return showResult('error', 'Password 조건을 확인해주세요.');
+        if (pw !== pwConf)                                                    return showResult('error', 'Password가 일치하지 않습니다.');
+        if (!/^\d{8}$/.test(iidx))                                           return showResult('error', 'IIDX ID는 8자리 숫자여야 합니다.');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))                      return showResult('error', '이메일 형식을 확인해주세요.');
 
         const btn = document.getElementById('requestBtn');
         btn.disabled = true;
@@ -329,9 +354,8 @@
             if (data.status === 'success') {
                 showResult('success', '가입 신청이 완료됐습니다! 관리자 승인 후 로그인이 가능합니다.');
                 btn.textContent = '완료';
-                // 입력 필드 비활성화
-                ['signId','signPw','signIidx','signEmail'].forEach(id => {
-                    document.getElementById(id).disabled = true;
+                ['signId','signPw','signPwConfirm','signIidx','signEmail'].forEach(fid => {
+                    document.getElementById(fid).disabled = true;
                 });
             } else {
                 showResult('error', data.message || '오류가 발생했습니다.');
