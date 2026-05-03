@@ -5,7 +5,7 @@
 // =============================================
 
 // ── Apps Script URL ──────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx2jkXI1gPWUK9ojQ7CQD4GnLPiHGQ5Zov9kvhc0wEmEUyVxZB8KV7X1VrfT7KpQNba/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvITUuHOMQJntdpOaI-1SW2gVqmHiSBn0lGC4vmA18CB43hWWNSeWIIUmmVgpew_FM/exec';
 
 // ── 버전 정보 ────────────────────────────────
 // version.js 대신 여기서 관리합니다.
