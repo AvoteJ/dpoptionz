@@ -8,15 +8,12 @@
     <style>
         body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
 
-        /* ── 공통 배너 ── */
         #site-banner { width: 100%; background-color: rgba(40,30,10,0.55); padding: 10px 0; font-size: 10.5pt; color: rgba(255,200,100,0.85); box-sizing: border-box; }
-        /* ── 공통 네비게이션 ── */
         header { width: 100%; padding: 20px 0; }
         .nav-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         .nav-link { text-decoration: none; color: rgba(255,255,255,0.8); background-color: transparent; border: 1px solid rgba(255,255,255,0.5); padding: 8px 16px; border-radius: 4px; font-size: 14pt; font-family: inherit; }
         .nav-link:hover { background-color: rgba(255,255,255,0.08); }
         .nav-link-active { background-color: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.85); color: white; }
-        /* ── 오른쪽 상단 Login / Logout ── */
         #auth-btn-container { position: fixed; top: 14px; right: 18px; z-index: 9999; }
         .auth-corner-btn { padding: 7px 16px; border-radius: 4px; font-size: 11pt; font-family: inherit; cursor: pointer; transition: background-color 0.15s; }
         .auth-corner-btn.logout { background-color: transparent; border: 1px solid rgba(255,100,100,0.55); color: rgba(255,130,130,0.9); }
@@ -26,59 +23,42 @@
 
         main { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 60px; gap: 28px; padding-bottom: 60px; }
 
-        /* ── How to use 블록 ── */
-        .h2u-section {
-            width: 90%;
-            max-width: 700px;
-        }
-
+        /* ── 섹션 토글 ── */
+        .h2u-section { width: 90%; max-width: 700px; }
         .h2u-toggle-btn {
-            width: 100%;
-            text-align: left;
-            background-color: transparent;
-            border: none;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.5);
-            font-size: 14pt;
-            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
-            padding: 10px 4px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: color 0.15s;
+            width: 100%; text-align: left; background-color: transparent; border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5);
+            font-size: 14pt; font-family: inherit; padding: 10px 4px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; transition: color 0.15s;
         }
         .h2u-toggle-btn:hover { color: rgba(255,255,255,0.85); }
         .h2u-toggle-btn.open { color: rgba(255,255,255,0.85); border-bottom-color: rgba(255,255,255,0.35); }
-
         .h2u-arrow { font-size: 10pt; transition: transform 0.2s; color: rgba(255,255,255,0.35); }
         .h2u-toggle-btn.open .h2u-arrow { transform: rotate(180deg); }
-
-        .h2u-content {
-            display: none;
-            padding: 18px 4px 8px;
-        }
+        .h2u-content { display: none; padding: 24px 4px 12px; }
         .h2u-content.open { display: block; }
 
-        .h2u-title {
-            font-size: 13pt;
-            color: rgba(255,255,255,0.9);
-            margin: 0 0 12px 0;
-            font-weight: bold;
+        /* ── 내용 스타일 ── */
+        .about-block { margin-bottom: 28px; }
+        .about-title {
+            font-size: 13pt; color: rgba(255,255,255,0.5); margin: 0 0 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 6px;
         }
-        .h2u-body {
-            font-size: 12pt;
-            color: rgba(255,255,255,0.75);
-            line-height: 2;
-            margin: 0;
-        }
+        .about-content { font-size: 12pt; color: rgba(255,255,255,0.85); line-height: 2; margin: 0; }
+        .about-content ol { padding-left: 20px; margin: 0; }
+        .about-content li { margin-bottom: 14px; }
+        .about-content .sub-note { font-size: 10.5pt; color: rgba(255,255,255,0.45); margin-top: 4px; }
+
+        /* ── 표 ── */
+        .h2u-table { border-collapse: collapse; width: 100%; margin: 12px 0; background-color: rgba(255,255,255,0.04); }
+        .h2u-table th { background-color: #5c3333; padding: 10px 14px; border: 1px solid #555; font-size: 10.5pt; text-align: center; }
+        .h2u-table td { padding: 9px 14px; border: 1px solid #555; font-size: 10.5pt; text-align: center; color: rgba(255,255,255,0.85); }
     </style>
 </head>
 <body>
 
     <div id="auth-btn-container"></div>
     <div id="site-banner"></div>
-
     <header>
         <nav class="nav-container" id="site-nav"></nav>
         <div id="how2use-link" style="text-align:center; padding: 4px 0 2px;"></div>
@@ -86,39 +66,163 @@
 
     <main>
 
-        <!-- KOREAN -->
+        <!-- ── KOREAN ── -->
         <div class="h2u-section">
             <button class="h2u-toggle-btn" onclick="toggleSection(this)">
-                KOREAN
-                <span class="h2u-arrow">▼</span>
+                KOREAN <span class="h2u-arrow">▼</span>
             </button>
             <div class="h2u-content">
-                <p class="h2u-title">KOR H2U TITLE TEST</p>
-                <p class="h2u-body">KOR H2U TEST</p>
+
+                <div class="about-block">
+                    <p class="about-title">DPOPz (Double Play Optionz)란?</p>
+                    <p class="about-content">
+                        DPOPz는, Double Player들을 위한 배치표 자료 통계 사이트로,
+                        의견 제안을 통해 다른 DPer들, 특히 초심자들을 위한 배치 가이드라인으로써
+                        사용하기 위해 제작된 페이지입니다.
+                    </p>
+                </div>
+
+                <div class="about-block">
+                    <p class="about-title">웹 페이지 사용 방법</p>
+                    <div class="about-content">
+                        <ol>
+                            <li>
+                                <strong>Top</strong><br>
+                                해당 페이지의 검색 기능을 통해 곡명을 검색하면 즉시 해당 곡에 사용된 배치들의 분포도가 표시됩니다.
+                                Vote 버튼을 통해 자신의 의견도 즉시 제출이 가능합니다.
+                                <span class="sub-note">(Vote를 위해서는 가입이 필요합니다.)</span>
+                            </li>
+                            <li>
+                                <strong>Table</strong><br>
+                                데이터가 수집된 모든 데이터의 열람이 가능합니다. 현재 집계중인 데이터는 아래와 같습니다.
+                                <table class="h2u-table">
+                                    <thead>
+                                        <tr><th>레벨</th><th>집계 대상</th><th>집계 여부</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>☆12</td><td>AC 전체 譜面</td><td>집계</td></tr>
+                                        <tr><td>☆11</td><td>AC 전체 譜面</td><td>집계</td></tr>
+                                        <tr><td>☆10</td><td>AC의 ANOTHER / LEGGENDARIA 譜面</td><td>보류*</td></tr>
+                                        <tr><td>☆9</td><td>AC의 ANOTHER / LEGGENDARIA 譜面</td><td>보류*</td></tr>
+                                    </tbody>
+                                </table>
+                                <span class="sub-note">*추후 추가 예정</span>
+                            </li>
+                            <li>
+                                <strong>Report</strong><br>
+                                해당 사이트에 오류가 있을 경우, 해당 페이지로 보고를 부탁드립니다.
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- JAPANESE -->
+        <!-- ── JAPANESE ── -->
         <div class="h2u-section">
             <button class="h2u-toggle-btn" onclick="toggleSection(this)">
-                JAPANESE
-                <span class="h2u-arrow">▼</span>
+                JAPANESE <span class="h2u-arrow">▼</span>
             </button>
             <div class="h2u-content">
-                <p class="h2u-title">JAP H2U TITLE TEST</p>
-                <p class="h2u-body">JAP H2U TEST</p>
+
+                <div class="about-block">
+                    <p class="about-title">DPOPz (Double Play Optionz)とは？</p>
+                    <p class="about-content">
+                        DPOPzは、Double Playerのための配置統計サイトです。
+                        ご意見の投票を通じて、他のDPerたち、特に初心者のための配置ガイドラインとして
+                        活用することを目的として制作されたページです。
+                    </p>
+                </div>
+
+                <div class="about-block">
+                    <p class="about-title">ウェブページの使い方</p>
+                    <div class="about-content">
+                        <ol>
+                            <li>
+                                <strong>Top</strong><br>
+                                検索機能を使って曲名を検索すると、その曲で使用された配置の分布が即座に表示されます。
+                                Voteボタンから自分の意見もすぐに投稿できます。
+                                <span class="sub-note">(Voteには登録が必要です。)</span>
+                            </li>
+                            <li>
+                                <strong>Table</strong><br>
+                                収集済みの全データを閲覧できます。現在集計中のデータは以下の通りです。
+                                <table class="h2u-table">
+                                    <thead>
+                                        <tr><th>レベル</th><th>集計対象</th><th>集計状況</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>☆12</td><td>AC 全譜面</td><td>集計中</td></tr>
+                                        <tr><td>☆11</td><td>AC 全譜面</td><td>集計中</td></tr>
+                                        <tr><td>☆10</td><td>ACの ANOTHER / LEGGENDARIA 譜面</td><td>保留*</td></tr>
+                                        <tr><td>☆9</td><td>ACの ANOTHER / LEGGENDARIA 譜面</td><td>保留*</td></tr>
+                                    </tbody>
+                                </table>
+                                <span class="sub-note">*今後追加予定</span>
+                            </li>
+                            <li>
+                                <strong>Report</strong><br>
+                                サイトに不具合がある場合は、こちらのページからご報告をお願いします。
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- ENGLISH -->
+        <!-- ── ENGLISH ── -->
         <div class="h2u-section">
             <button class="h2u-toggle-btn" onclick="toggleSection(this)">
-                ENGLISH
-                <span class="h2u-arrow">▼</span>
+                ENGLISH <span class="h2u-arrow">▼</span>
             </button>
             <div class="h2u-content">
-                <p class="h2u-title">ENG H2U TITLE TEST</p>
-                <p class="h2u-body">ENG H2U TEST</p>
+
+                <div class="about-block">
+                    <p class="about-title">What is DPOPz (Double Play Optionz)?</p>
+                    <p class="about-content">
+                        DPOPz is a Chart option statistics site for Double Players.
+                        It is designed to serve as an option placement guideline for other DPers,
+                        especially beginners, through community voting and submissions.
+                    </p>
+                </div>
+
+                <div class="about-block">
+                    <p class="about-title">How to use</p>
+                    <div class="about-content">
+                        <ol>
+                            <li>
+                                <strong>Top</strong><br>
+                                Search for a song title using the search feature, and the option distribution
+                                for that song will be displayed immediately.
+                                You can also submit your own vote via the Vote button.
+                                <span class="sub-note">(Sign-up is required to Vote.)</span>
+                            </li>
+                            <li>
+                                <strong>Table</strong><br>
+                                All collected data can be browsed here. The data currently being tracked is as follows.
+                                <table class="h2u-table">
+                                    <thead>
+                                        <tr><th>Level</th><th>Target Charts</th><th>Status</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>☆12</td><td>All AC Charts</td><td>Active</td></tr>
+                                        <tr><td>☆11</td><td>All AC Charts</td><td>Active</td></tr>
+                                        <tr><td>☆10</td><td>AC ANOTHER / LEGGENDARIA Charts</td><td>Pending*</td></tr>
+                                        <tr><td>☆9</td><td>AC ANOTHER / LEGGENDARIA Charts</td><td>Pending*</td></tr>
+                                    </tbody>
+                                </table>
+                                <span class="sub-note">*To be added in the future</span>
+                            </li>
+                            <li>
+                                <strong>Report</strong><br>
+                                If you encounter any issues on this site, please submit a report via this page.
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -133,14 +237,10 @@
     function toggleSection(btn) {
         const content = btn.nextElementSibling;
         const isOpen  = btn.classList.contains('open');
-
-        // 모두 닫기
         document.querySelectorAll('.h2u-toggle-btn').forEach(b => {
             b.classList.remove('open');
             b.nextElementSibling.classList.remove('open');
         });
-
-        // 클릭한 것만 열기 (이미 열려있으면 그냥 닫힘)
         if (!isOpen) {
             btn.classList.add('open');
             content.classList.add('open');
