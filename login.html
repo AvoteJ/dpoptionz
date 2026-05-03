@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>Double Play Optionz - Login</title>
+    <style>
+        body {
+            background-color: #333333;
+            color: white;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        header { width: 100%; padding: 20px 0; }
+        .nav-container { display: flex; justify-content: center; gap: 15px; }
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14pt;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
+            gap: 32px;
+        }
+
+        .main-title {
+            font-size: 24pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .main-title .accent { color: #e91e8c; }
+
+        .login-box {
+            width: 90%;
+            max-width: 360px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-box h2 {
+            margin: 0 0 8px 0;
+            font-size: 13pt;
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 14px;
+        }
+
+        .field-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 9.5pt;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .field-input {
+            padding: 10px 14px;
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 11pt;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .field-input:focus { border-color: rgba(255, 255, 255, 0.5); }
+
+        .login-btn {
+            margin-top: 8px;
+            padding: 11px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 4px;
+            font-size: 11pt;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .login-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .login-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .error-msg {
+            display: none;
+            font-size: 9.5pt;
+            color: rgba(255, 100, 100, 0.9);
+            text-align: center;
+            padding: 8px;
+            background-color: rgba(160, 60, 60, 0.2);
+            border: 1px solid rgba(160, 60, 60, 0.4);
+            border-radius: 4px;
+        }
+
+        .session-info {
+            font-size: 9.5pt;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+            margin-top: 4px;
+            margin-bottom: 0;
+        }
+
+        .signup-link {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+            font-size: 11pt;
+            text-decoration: none;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .signup-link:hover {
+            background-color: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .not-approved-msg {
+            display: none;
+            font-size: 9pt;
+            color: rgba(255, 160, 80, 0.9);
+            text-align: center;
+            line-height: 1.6;
+            padding: 8px 10px;
+            background-color: rgba(160, 100, 40, 0.15);
+            border: 1px solid rgba(160, 100, 40, 0.35);
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="width:100%; background-color:rgba(255,165,0,0.15); padding:10px 0; text-align:center; font-size:12pt; color:rgba(255,200,100,0.9);">
+        &lt;BETA OPEN&gt; 현재 페이지는 지속적으로 업데이트 중으로, 오류가 아직 많습니다. 또한, Vote DB 혼선 방지를 위해 투표 기능이 작동하지 않습니다.
+    </div>
+
+    <header>
+        <nav class="nav-container">
+            <a href="index.html" class="nav-link">Top</a>
+            <a href="table.html" class="nav-link">Table</a>
+            <a href="about.html" class="nav-link">About</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1 class="main-title">
+            <span class="accent">D</span>ouble
+            <span class="accent">P</span>lay
+            Option<span class="accent" style="text-transform:none;">z</span>
+        </h1>
+
+        <div class="login-box">
+            <h2>Login</h2>
+
+            <div class="field-row">
+                <span class="field-label">ID</span>
+                <input type="text" id="loginId" class="field-input" placeholder=""
+                    onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()">
+            </div>
+
+            <div class="field-row">
+                <span class="field-label">Password</span>
+                <input type="password" id="loginPw" class="field-input" placeholder=""
+                    onkeydown="if(event.key==='Enter') doLogin()">
+            </div>
+
+            <div class="error-msg" id="errorMsg"></div>
+
+            <button class="login-btn" id="loginBtn" onclick="doLogin()">Login</button>
+
+            <a href="signup.html" class="signup-link">Sign up</a>
+
+            <p class="session-info">세션은 다음날 오전 5시에 만료됩니다</p>
+            <p class="not-approved-msg" id="notApprovedMsg">
+                Your login is not approved.<br>Please proceed with the login after approval.
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
+    </footer>
+
+<script src="config.js"></script>
+<script src="session.js"></script>
+<script>
+    // 로그인 처리
+    async function doLogin() {
+        const id  = document.getElementById('loginId').value.trim();
+        const pw  = document.getElementById('loginPw').value;
+        const btn = document.getElementById('loginBtn');
+        const err = document.getElementById('errorMsg');
+
+        if (!id || !pw) {
+            showError('ID와 Password를 입력해주세요.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '확인 중...';
+        err.style.display = 'none';
+        document.getElementById('notApprovedMsg').style.display = 'none';
+
+        try {
+            const res = await fetch(
+                `${APPS_SCRIPT_URL}?action=login&id=${encodeURIComponent(id)}&pw=${encodeURIComponent(pw)}`
+            );
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                saveSession(id);
+                const returnTo = sessionStorage.getItem('dpopz_returnTo') || 'index.html';
+                sessionStorage.removeItem('dpopz_returnTo');
+                location.href = returnTo;
+            } else if (data.status === 'not_approved') {
+                document.getElementById('notApprovedMsg').style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            } else {
+                showError(data.message || 'ID 또는 Password가 올바르지 않습니다.');
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+        } catch (e) {
+            showError('서버에 연결할 수 없습니다.');
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        }
+    }
+
+    function showError(msg) {
+        const err = document.getElementById('errorMsg');
+        err.textContent = msg;
+        err.style.display = 'block';
+    }
+
+    // 이미 로그인된 경우 리다이렉트
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = checkSession();
+        if (session) {
+            const returnTo = sessionStorage.getItem('dpopz_returnTo') || 'index.html';
+            sessionStorage.removeItem('dpopz_returnTo');
+            location.href = returnTo;
+        }
+    });
+</script>
+</body>
+</html>

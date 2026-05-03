@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>Double Play Optionz - Sign Up</title>
+    <style>
+        body {
+            background-color: #333333;
+            color: white;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        header { width: 100%; padding: 20px 0; }
+        .nav-container { display: flex; justify-content: center; gap: 15px; }
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14pt;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
+            gap: 32px;
+        }
+
+        .main-title {
+            font-size: 24pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .main-title .accent { color: #e91e8c; }
+
+        .signup-box {
+            width: 90%;
+            max-width: 380px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .signup-box h2 {
+            margin: 0 0 8px 0;
+            font-size: 13pt;
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 14px;
+        }
+
+        .field-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .field-label {
+            font-size: 9.5pt;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .field-input {
+            padding: 10px 14px;
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 11pt;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
+            outline: none;
+            transition: border-color 0.15s;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .field-input:focus  { border-color: rgba(255, 255, 255, 0.5); }
+        .field-input.ok     { border-color: rgba(100, 200, 100, 0.6); }
+        .field-input.error  { border-color: rgba(220, 80, 80, 0.7); }
+
+        .field-hint {
+            font-size: 8.5pt;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 2px;
+        }
+        .field-hint.ok    { color: rgba(100, 200, 100, 0.8); }
+        .field-hint.error { color: rgba(220, 100, 100, 0.9); }
+
+        .request-btn {
+            margin-top: 10px;
+            padding: 11px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 4px;
+            font-size: 11pt;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .request-btn:hover    { background-color: rgba(255, 255, 255, 0.1); }
+        .request-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .result-msg {
+            display: none;
+            font-size: 9.5pt;
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .result-msg.success {
+            color: rgba(100, 220, 100, 0.9);
+            background-color: rgba(60, 140, 60, 0.2);
+            border: 1px solid rgba(60, 140, 60, 0.4);
+        }
+        .result-msg.error {
+            color: rgba(255, 100, 100, 0.9);
+            background-color: rgba(160, 60, 60, 0.2);
+            border: 1px solid rgba(160, 60, 60, 0.4);
+        }
+
+        .back-link {
+            font-size: 9.5pt;
+            color: rgba(255, 255, 255, 0.35);
+            text-align: center;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: rgba(255, 255, 255, 0.7); }
+    </style>
+</head>
+<body>
+
+    <div style="width:100%; background-color:rgba(255,165,0,0.15); padding:10px 0; text-align:center; font-size:12pt; color:rgba(255,200,100,0.9);">
+        &lt;BETA OPEN&gt; 현재 페이지는 지속적으로 업데이트 중으로, 오류가 아직 많습니다. 또한, Vote DB 혼선 방지를 위해 투표 기능이 작동하지 않습니다.
+    </div>
+
+    <header>
+        <nav class="nav-container">
+            <a href="index.html" class="nav-link">Top</a>
+            <a href="table.html" class="nav-link">Table</a>
+            <a href="about.html" class="nav-link">About</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1 class="main-title">
+            <span class="accent">D</span>ouble
+            <span class="accent">P</span>lay
+            Option<span class="accent" style="text-transform:none;">z</span>
+        </h1>
+
+        <div class="signup-box">
+            <h2>Sign Up</h2>
+
+            <!-- ID -->
+            <div class="field-row">
+                <span class="field-label">ID</span>
+                <input type="text" id="signId" class="field-input"
+                    maxlength="30"
+                    oninput="validateId()"
+                    onkeydown="if(event.key==='Enter') document.getElementById('signPw').focus()">
+                <span class="field-hint" id="hintId">6자 이상 입력해주세요.</span>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="field-row">
+                <span class="field-label">Password</span>
+                <input type="password" id="signPw" class="field-input"
+                    maxlength="30"
+                    oninput="validatePw()"
+                    onkeydown="if(event.key==='Enter') document.getElementById('signIidx').focus()">
+                <span class="field-hint" id="hintPw">6자 이상, 영문+숫자를 포함해야 합니다.</span>
+            </div>
+
+            <!-- IIDX ID -->
+            <div class="field-row">
+                <span class="field-label">IIDX ID</span>
+                <input type="text" id="signIidx" class="field-input"
+                    maxlength="8"
+                    inputmode="numeric"
+                    oninput="validateIidx()"
+                    onkeydown="if(event.key==='Enter') document.getElementById('signEmail').focus()">
+                <span class="field-hint" id="hintIidx">8자리 숫자를 입력해주세요.</span>
+            </div>
+
+            <!-- e-mail -->
+            <div class="field-row">
+                <span class="field-label">e-mail</span>
+                <input type="email" id="signEmail" class="field-input"
+                    maxlength="100"
+                    oninput="validateEmail()"
+                    onkeydown="if(event.key==='Enter') doSignup()">
+                <span class="field-hint" id="hintEmail">유효한 이메일 주소를 입력해주세요.</span>
+            </div>
+
+            <div class="result-msg" id="resultMsg"></div>
+
+            <button class="request-btn" id="requestBtn" onclick="doSignup()">Request</button>
+
+            <a href="login.html" class="back-link">← 로그인으로 돌아가기</a>
+        </div>
+    </main>
+
+    <footer>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
+    </footer>
+
+<script src="config.js"></script>
+<script>
+    // ── 유효성 검사 함수들 ───────────────────────────────────
+
+    function validateId() {
+        const val  = document.getElementById('signId').value;
+        const inp  = document.getElementById('signId');
+        const hint = document.getElementById('hintId');
+        if (val.length === 0) {
+            setFieldState(inp, hint, '', '6자 이상 입력해주세요.');
+        } else if (val.length < 6) {
+            setFieldState(inp, hint, 'error', `${val.length}자 / 최소 6자 이상`);
+        } else {
+            setFieldState(inp, hint, 'ok', `${val.length}자 ✓`);
+        }
+    }
+
+    function validatePw() {
+        const val  = document.getElementById('signPw').value;
+        const inp  = document.getElementById('signPw');
+        const hint = document.getElementById('hintPw');
+        if (val.length === 0) {
+            setFieldState(inp, hint, '', '6자 이상, 영문+숫자를 포함해야 합니다.');
+            return;
+        }
+        const hasAlpha  = /[a-zA-Z]/.test(val);
+        const hasDigit  = /[0-9]/.test(val);
+        const longEnough = val.length >= 6;
+
+        if (longEnough && hasAlpha && hasDigit) {
+            setFieldState(inp, hint, 'ok', '사용 가능한 Password ✓');
+        } else {
+            const msgs = [];
+            if (!longEnough) msgs.push(`${val.length}자 / 최소 6자`);
+            if (!hasAlpha)   msgs.push('영문 포함 필요');
+            if (!hasDigit)   msgs.push('숫자 포함 필요');
+            setFieldState(inp, hint, 'error', msgs.join(' · '));
+        }
+    }
+
+    function validateIidx() {
+        const inp  = document.getElementById('signIidx');
+        const hint = document.getElementById('hintIidx');
+        // 숫자 외 문자 즉시 제거
+        inp.value = inp.value.replace(/[^0-9]/g, '');
+        const val = inp.value;
+        if (val.length === 0) {
+            setFieldState(inp, hint, '', '8자리 숫자를 입력해주세요.');
+        } else if (val.length < 8) {
+            setFieldState(inp, hint, 'error', `${val.length}자리 / 8자리 필요`);
+        } else {
+            setFieldState(inp, hint, 'ok', '✓');
+        }
+    }
+
+    function validateEmail() {
+        const val  = document.getElementById('signEmail').value;
+        const inp  = document.getElementById('signEmail');
+        const hint = document.getElementById('hintEmail');
+        if (val.length === 0) {
+            setFieldState(inp, hint, '', '유효한 이메일 주소를 입력해주세요.');
+        } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            setFieldState(inp, hint, 'ok', '✓');
+        } else {
+            setFieldState(inp, hint, 'error', '올바른 이메일 형식이 아닙니다.');
+        }
+    }
+
+    function setFieldState(input, hint, state, msg) {
+        input.className = 'field-input' + (state ? ' ' + state : '');
+        hint.className  = 'field-hint'  + (state ? ' ' + state : '');
+        hint.textContent = msg;
+    }
+
+    // ── 제출 ────────────────────────────────────────────────
+    async function doSignup() {
+        // 전체 재검증
+        validateId(); validatePw(); validateIidx(); validateEmail();
+
+        const id    = document.getElementById('signId').value.trim();
+        const pw    = document.getElementById('signPw').value;
+        const iidx  = document.getElementById('signIidx').value;
+        const email = document.getElementById('signEmail').value.trim();
+
+        if (id.length < 6)                                      return showResult('error', 'ID는 6자 이상이어야 합니다.');
+        if (pw.length < 6 || !/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) return showResult('error', 'Password 조건을 확인해주세요.');
+        if (!/^\d{8}$/.test(iidx))                              return showResult('error', 'IIDX ID는 8자리 숫자여야 합니다.');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))         return showResult('error', '이메일 형식을 확인해주세요.');
+
+        const btn = document.getElementById('requestBtn');
+        btn.disabled = true;
+        btn.textContent = '전송 중...';
+        hideResult();
+
+        try {
+            const query = new URLSearchParams({
+                action: 'signup',
+                id, pw, iidxId: iidx, email
+            }).toString();
+
+            const res  = await fetch(`${APPS_SCRIPT_URL}?${query}`);
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showResult('success', '가입 신청이 완료됐습니다! 관리자 승인 후 로그인이 가능합니다.');
+                btn.textContent = '완료';
+                // 입력 필드 비활성화
+                ['signId','signPw','signIidx','signEmail'].forEach(id => {
+                    document.getElementById(id).disabled = true;
+                });
+            } else {
+                showResult('error', data.message || '오류가 발생했습니다.');
+                btn.disabled = false;
+                btn.textContent = 'Request';
+            }
+        } catch (e) {
+            showResult('error', '서버에 연결할 수 없습니다.');
+            btn.disabled = false;
+            btn.textContent = 'Request';
+        }
+    }
+
+    function showResult(type, msg) {
+        const el = document.getElementById('resultMsg');
+        el.textContent = msg;
+        el.className = 'result-msg ' + type;
+        el.style.display = 'block';
+    }
+    function hideResult() {
+        document.getElementById('resultMsg').style.display = 'none';
+    }
+</script>
+</body>
+</html>
