@@ -142,6 +142,60 @@
         }
         .back-link:hover { color: rgba(255, 255, 255, 0.7); }
 
+        /* ── 약관 박스 ── */
+        .terms-box {
+            width: 90%;
+            max-width: 760px;
+            background-color: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 40px;
+        }
+        .terms-title-text {
+            font-size: 11pt;
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+            margin: 0 0 4px 0;
+            line-height: 1.7;
+        }
+        .terms-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .terms-list li {
+            font-size: 9.5pt;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.7;
+            padding-left: 1.2em;
+            text-indent: -1.2em;
+        }
+        .terms-check-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .terms-check-row input[type="checkbox"] {
+            width: 16px; height: 16px;
+            cursor: pointer;
+            accent-color: rgba(255,165,0,0.9);
+            flex-shrink: 0;
+        }
+        .terms-check-row label {
+            font-size: 9.5pt;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+        }
+
         /* ── 공통 배너 ── */
         #site-banner {
             width: 100%;
@@ -199,6 +253,30 @@
             color: rgba(255, 255, 255, 0.75);
         }
         .auth-corner-btn.login:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* ── 언어 선택 버튼 ── */
+        .lang-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .lang-btn {
+            padding: 6px 18px;
+            background-color: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.55);
+            border-radius: 4px;
+            font-size: 10pt;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .lang-btn:hover { background-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+        .lang-btn.active {
+            background-color: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.8);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -216,6 +294,27 @@
             <span class="accent">P</span>lay
             Option<span class="accent" style="text-transform:none;">z</span>
         </h1>
+
+        <div class="lang-selector">
+            <button class="lang-btn active" onclick="setLang('en')">ENGLISH</button>
+            <button class="lang-btn" onclick="setLang('ko')">한국어</button>
+            <button class="lang-btn" onclick="setLang('ja')">日本語</button>
+        </div>
+
+        <!-- 약관 박스 -->
+        <div class="terms-box">
+            <p class="terms-title-text" id="terms-title">Terms &amp; Conditions: I have read and agree to all of the following terms, and I proceed with the sign-up request accordingly.</p>
+            <ul class="terms-list" id="terms-list">
+                <li>※ This site operates on Vercel, which does not provide professional-grade security. Please avoid using your commonly used ID or Password. This site is not responsible for any damage caused by password leakage.</li>
+                <li>※ The IIDX ID and e-mail entered during sign-up will only be used for identity verification purposes.</li>
+                <li>※ Only one account is allowed per IIDX ID. Duplicate registrations are not permitted.</li>
+                <li>※ Login and Vote features will be available within 3–7 days after your sign-up request is approved by an administrator.</li>
+            </ul>
+            <div class="terms-check-row">
+                <input type="checkbox" id="termsCheck" onchange="onTermsChange()">
+                <label for="termsCheck" id="terms-check-label">I have read and agree to all of the above terms.</label>
+            </div>
+        </div>
 
         <div class="signup-box">
             <h2>Sign Up</h2>
@@ -273,7 +372,7 @@
 
             <div class="result-msg" id="resultMsg"></div>
 
-            <button class="request-btn" id="requestBtn" onclick="doSignup()">Request</button>
+            <button class="request-btn" id="requestBtn" onclick="doSignup()" disabled style="opacity:0.4; cursor:not-allowed;">Request</button>
 
             <a href="login.html" class="back-link">← Back to Login</a>
         </div>
@@ -285,6 +384,176 @@
 <script src="session.js"></script>
 <script src="nav.js"></script>
 <script>
+
+    // ── 다국어 설정 ──────────────────────────────────────
+    const I18N = {
+        en: {
+            title:          'Sign Up',
+            labelId:        'ID',
+            labelPw:        'Password',
+            labelPwConfirm: 'Confirm Password',
+            labelIidx:      'IIDX ID',
+            labelEmail:     'e-mail',
+            hintId:         'At least 6 characters.',
+            hintPw:         'At least 6 characters, including letters and numbers.',
+            hintPwConfirm:  'Please enter your password again.',
+            hintIidx:       'Enter your 8-digit IIDX ID.',
+            hintEmail:      'Enter a valid email address.',
+            requestBtn:     'Request',
+            backLink:       '← Back to Login',
+            warningTitle:   'Terms & Conditions: I have read and agree to all of the following terms, and I proceed with the sign-up request accordingly.',
+            terms: [
+                '※ This site operates on Vercel, which does not provide professional-grade security. Please avoid using your commonly used ID or Password. This site is not responsible for any damage caused by password leakage.',
+                '※ The IIDX ID and e-mail entered during sign-up will only be used for identity verification purposes.',
+                '※ Only one account is allowed per IIDX ID. Duplicate registrations are not permitted.',
+                '※ Login and Vote features will be available within 3–7 days after your sign-up request is approved by an administrator.',
+            ],
+            termsCheckLabel: 'I have read and agree to all of the above terms.',
+            successMsg: 'Sign-up request submitted! You can log in after admin approval.',
+            errId:    'ID must be at least 6 characters.',
+            errPw:    'Password must be at least 6 characters and include letters and numbers.',
+            errMatch: 'Passwords do not match.',
+            errIidx:  'IIDX ID must be exactly 8 digits.',
+            errEmail: 'Invalid email format.',
+            errServer:'Could not connect to the server.',
+            errOther: 'An error occurred. Please try again.',
+            sending:  'Sending...',
+            done:     'Done',
+        },
+        ko: {
+            title:          'Sign Up',
+            labelId:        'ID',
+            labelPw:        '비밀번호',
+            labelPwConfirm: '비밀번호 확인',
+            labelIidx:      'IIDX ID',
+            labelEmail:     '이메일',
+            hintId:         '6자 이상 입력해주세요.',
+            hintPw:         '6자 이상, 영문+숫자를 포함해야 합니다.',
+            hintPwConfirm:  '비밀번호를 한 번 더 입력해주세요.',
+            hintIidx:       '8자리 숫자를 입력해주세요.',
+            hintEmail:      '유효한 이메일 주소를 입력해주세요.',
+            requestBtn:     '가입 신청',
+            backLink:       '← 로그인으로 돌아가기',
+            warningTitle:   '약관 사항: 아래 내용을 모두 확인하였으며, 동의한 아래 가입 신청을 진행합니다.',
+            terms: [
+                '※ 해당 페이지는 전문적인 보안처리가 되지 않은 Vercel 시스템을 활용한 페이지입니다. 개인이 자주 사용하는 ID 또는 PASSWORD 사용을 지양해주시고, 비밀번호 유출에 따른 사항은 본 사이트는 책임지지 않습니다.',
+                '※ 회원 가입 시 작성되는 IIDX ID 및 e-mail은 본인 확인을 위한 수단으로만 사용됩니다.',
+                '※ IIDX ID당 1개의 ID만 가입이 가능하며, 중복 가입은 허용되지 않습니다.',
+                '※ 로그인 및 Vote 기능은 가입 요청으로부터 3~7일 이내에 관리자가 승인 후 이용이 가능합니다.',
+            ],
+            termsCheckLabel: '위의 모든 약관을 읽고 동의합니다.',
+            successMsg: '가입 신청이 완료됐습니다! 관리자 승인 후 로그인이 가능합니다.',
+            errId:    'ID는 6자 이상이어야 합니다.',
+            errPw:    'Password는 6자 이상, 영문+숫자를 포함해야 합니다.',
+            errMatch: 'Password가 일치하지 않습니다.',
+            errIidx:  'IIDX ID는 8자리 숫자여야 합니다.',
+            errEmail: '이메일 형식을 확인해주세요.',
+            errServer:'서버에 연결할 수 없습니다.',
+            errOther: '오류가 발생했습니다. 다시 시도해주세요.',
+            sending:  '전송 중...',
+            done:     '완료',
+        },
+        ja: {
+            title:          'Sign Up',
+            labelId:        'ID',
+            labelPw:        'パスワード',
+            labelPwConfirm: 'パスワード確認',
+            labelIidx:      'IIDX ID',
+            labelEmail:     'メールアドレス',
+            hintId:         '6文字以上で入力してください。',
+            hintPw:         '6文字以上、英字と数字を含めてください。',
+            hintPwConfirm:  'もう一度パスワードを入力してください。',
+            hintIidx:       '8桁の数字を入力してください。',
+            hintEmail:      '有効なメールアドレスを入力してください。',
+            requestBtn:     '登録申請',
+            backLink:       '← ログインに戻る',
+            warningTitle:   '利用規約：以下の内容をすべて確認し、同意の上で登録申請を進めます。',
+            terms: [
+                '※ このサイトは専門的なセキュリティ処理のないVercelシステムを使用しています。普段使用しているIDやPasswordの使用はお控えください。パスワード漏洩による損害について、本サイトは責任を負いません。',
+                '※ 登録時に入力するIIDX IDおよびメールアドレスは、本人確認の目的のみに使用されます。',
+                '※ IIDX IDにつき1アカウントのみ登録可能です。重複登録は許可されていません。',
+                '※ ログインおよびVote機能は、登録申請から3〜7日以内に管理者が承認した後にご利用いただけます。',
+            ],
+            termsCheckLabel: '上記すべての利用規約を読み、同意します。',
+            successMsg: '登録申請が完了しました！管理者の承認後にログインが可能になります。',
+            errId:    'IDは6文字以上である必要があります。',
+            errPw:    'パスワードは6文字以上で、英字と数字を含めてください。',
+            errMatch: 'パスワードが一致しません。',
+            errIidx:  'IIDX IDは8桁の数字である必要があります。',
+            errEmail: 'メールアドレスの形式を確認してください。',
+            errServer:'サーバーに接続できませんでした。',
+            errOther: 'エラーが発生しました。もう一度お試しください。',
+            sending:  '送信中...',
+            done:     '完了',
+        },
+    };
+
+    let currentLang = 'en';
+
+    function setLang(lang) {
+        currentLang = lang;
+        const t = I18N[lang];
+
+        // 언어 버튼 active 상태
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${lang}'`));
+        });
+
+        // 폼 텍스트 교체
+        document.querySelector('.signup-box h2').textContent = t.title;
+        document.querySelector('.field-label[for-id="signId"], .field-row:nth-of-type(1) .field-label').textContent = t.labelId;
+
+        // 각 라벨
+        const labels = document.querySelectorAll('.field-label');
+        const labelKeys = ['labelId','labelPw','labelPwConfirm','labelIidx','labelEmail'];
+        labels.forEach((el, i) => { if (labelKeys[i]) el.textContent = t[labelKeys[i]]; });
+
+        // 힌트 (현재 값 없을 때만 기본 힌트로 교체)
+        const hintMap = {
+            hintId: 'hintId', hintPw: 'hintPw', hintPwConfirm: 'hintPwConfirm',
+            hintIidx: 'hintIidx', hintEmail: 'hintEmail'
+        };
+        Object.entries(hintMap).forEach(([key, id]) => {
+            const el = document.getElementById(id);
+            if (el && !el.classList.contains('ok') && !el.classList.contains('error')) {
+                el.textContent = t[key];
+            }
+        });
+
+        // 버튼 / 링크
+        const reqBtn = document.getElementById('requestBtn');
+        if (reqBtn && reqBtn.textContent !== I18N.en.done && reqBtn.textContent !== I18N.ko.done && reqBtn.textContent !== I18N.ja.done) {
+            reqBtn.textContent = t.requestBtn;
+        }
+        const backLink = document.querySelector('.back-link');
+        if (backLink) backLink.textContent = t.backLink;
+
+        // 약관 박스
+        const termsTitle = document.getElementById('terms-title');
+        if (termsTitle) termsTitle.textContent = t.warningTitle;
+
+        const termsList = document.getElementById('terms-list');
+        if (termsList) {
+            termsList.innerHTML = '';
+            t.terms.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                termsList.appendChild(li);
+            });
+        }
+
+        const termsLabel = document.getElementById('terms-check-label');
+        if (termsLabel) termsLabel.textContent = t.termsCheckLabel;
+    }
+
+    function onTermsChange() {
+        const checked = document.getElementById('termsCheck').checked;
+        const btn     = document.getElementById('requestBtn');
+        btn.disabled      = !checked;
+        btn.style.opacity = checked ? '1' : '0.4';
+        btn.style.cursor  = checked ? 'pointer' : 'not-allowed';
+    }
+
     // ── Validation ───────────────────────────────────────────
 
     function validateId() {
@@ -380,20 +649,21 @@
         const iidx   = document.getElementById('signIidx').value;
         const email  = document.getElementById('signEmail').value.trim();
 
+        const t = I18N[currentLang];
         if (id.length < 6)
-            return showResult('error', 'ID must be at least 6 characters.');
+            return showResult('error', t.errId);
         if (pw.length < 6 || !/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw))
-            return showResult('error', 'Password must be at least 6 characters and include letters and numbers.');
+            return showResult('error', t.errPw);
         if (pw !== pwConf)
-            return showResult('error', 'Passwords do not match.');
+            return showResult('error', t.errMatch);
         if (!/^\d{8}$/.test(iidx))
-            return showResult('error', 'IIDX ID must be exactly 8 digits.');
+            return showResult('error', t.errIidx);
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-            return showResult('error', 'Invalid email format.');
+            return showResult('error', t.errEmail);
 
         const btn = document.getElementById('requestBtn');
         btn.disabled    = true;
-        btn.textContent = 'Sending...';
+        btn.textContent = I18N[currentLang].sending;
         hideResult();
 
         try {
@@ -406,18 +676,18 @@
             const data = await res.json();
 
             if (data.status === 'success') {
-                showResult('success', 'Sign-up request submitted! You can log in after admin approval.');
-                btn.textContent = 'Done';
+                showResult('success', I18N[currentLang].successMsg);
+                btn.textContent = I18N[currentLang].done;
                 ['signId','signPw','signPwConfirm','signIidx','signEmail'].forEach(fid => {
                     document.getElementById(fid).disabled = true;
                 });
             } else {
-                showResult('error', data.message || 'An error occurred. Please try again.');
+                showResult('error', data.message || I18N[currentLang].errOther);
                 btn.disabled    = false;
                 btn.textContent = 'Request';
             }
         } catch (e) {
-            showResult('error', 'Could not connect to the server.');
+            showResult('error', I18N[currentLang].errServer);
             btn.disabled    = false;
             btn.textContent = 'Request';
         }
