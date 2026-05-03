@@ -90,6 +90,54 @@
             color: rgba(255, 255, 255, 0.75);
         }
         .auth-corner-btn.login:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* ── Vote 모달 ── */
+        #vote-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        #vote-modal-overlay.open { display: flex; }
+        #vote-modal {
+            background-color: #2e2e2e;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            width: 92%;
+            max-width: 720px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        #vote-modal-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        #vote-modal-close {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.7);
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 10pt;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        #vote-modal-close:hover { background-color: rgba(255,255,255,0.1); }
+        #vote-modal-iframe {
+            border: none;
+            width: 100%;
+            flex: 1;
+            min-height: 500px;
+        }
     </style>
 </head>
 <body>
@@ -288,7 +336,8 @@
                 const voteTd = document.createElement('td');
                 if (row.extra) {
                     const btn = document.createElement('a');
-                    btn.href = `vote.html?title=${encodeURIComponent(row.title)}&diff=${encodeURIComponent(row.diff || '')}`;
+                    btn.href = 'javascript:void(0)';
+                    btn.onclick = () => openVoteModal(row.title, row.diff || '');
                     btn.textContent = 'Vote'; btn.className = 'vote-btn';
                     voteTd.appendChild(btn);
                 }
@@ -302,8 +351,43 @@
             resultArea.innerHTML = '<p style="text-align:center;">검색 결과가 없습니다.</p>';
         }
     }
+
+    // ── Vote 모달 ────────────────────────────
+    function openVoteModal(title, diff) {
+        const url = 'vote.html?title=' + encodeURIComponent(title) + '&diff=' + encodeURIComponent(diff || '');
+        document.getElementById('vote-modal-iframe').src = url;
+        document.getElementById('vote-modal-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeVoteModal() {
+        document.getElementById('vote-modal-overlay').classList.remove('open');
+        document.getElementById('vote-modal-iframe').src = '';
+        document.body.style.overflow = '';
+    }
+    // ESC 키로 닫기
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVoteModal(); });
+    // 오버레이 클릭으로 닫기
+    document.getElementById('vote-modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeVoteModal();
+    });
+    // vote.html 내부에서 보내는 닫기 메시지 수신
+    window.addEventListener('message', e => { if (e.data === 'closeVoteModal') closeVoteModal(); });
+
 </script>
 
-    <footer id="site-footer"></footer>
+    <footer>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
+    </footer>
+
+    <!-- Vote 모달 -->
+    <div id="vote-modal-overlay">
+        <div id="vote-modal">
+            <div id="vote-modal-header">
+                <button id="vote-modal-close" onclick="closeVoteModal()">✕ Close</button>
+            </div>
+            <iframe id="vote-modal-iframe" src=""></iframe>
+        </div>
+    </div>
 </body>
 </html>

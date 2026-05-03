@@ -454,6 +454,8 @@
         const noteEl = document.getElementById('voteNote');
         const noteVal = noteEl ? noteEl.value.trim() : '';
 
+        const _sess = (typeof checkSession === 'function') ? checkSession() : null;
+
         const payload = {
             action:     'vote',
             timestamp:  timestamp,
@@ -463,10 +465,11 @@
             option2:    document.getElementById('opt2').value,
             option3:    document.getElementById('opt3').value,
             note:       noteVal,
+            id:         _sess ? _sess.id : '',
         };
 
         btn.disabled = true;
-        btn.textContent = '전송 중...';
+        btn.textContent = 'Sending...';
         msg.style.display = 'none';
 
         const query = new URLSearchParams(payload).toString();
@@ -475,15 +478,16 @@
         .then(res => res.json())
         .then(result => {
             if (result.status === 'success') {
-                msg.textContent = '투표가 완료되었습니다!';
+                msg.textContent = 'Vote submitted successfully!';
                 msg.className = 'result-msg success';
                 msg.style.display = 'block';
-                btn.textContent = '완료';
+                btn.textContent = 'Done';
 
                 // 돌아가기 버튼 추가
                 const backBtn = document.createElement('a');
-                backBtn.href = 'table.html';
-                backBtn.textContent = '← 목록으로 돌아가기';
+                backBtn.href = 'javascript:void(0)';
+                backBtn.textContent = '← Close';
+                backBtn.onclick = () => { if (window.parent !== window) { window.parent.postMessage('closeVoteModal', '*'); } else { history.back(); } };
                 backBtn.className = 'submit-btn';
                 backBtn.style.marginTop = '12px';
                 backBtn.style.textDecoration = 'none';
@@ -496,7 +500,7 @@
         })
         .catch(err => {
             console.error('전송 실패:', err);
-            msg.textContent = '전송에 실패했습니다. 다시 시도해주세요.';
+            msg.textContent = 'Submission failed. Please try again.';
             msg.className = 'result-msg error';
             msg.style.display = 'block';
             btn.disabled = false;
