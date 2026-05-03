@@ -164,6 +164,13 @@
             color: rgba(255, 255, 255, 0.75);
         }
         .auth-corner-btn.login:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* ── 모달 모드: 배너/네비/로그아웃 숨김 ── */
+        body.modal-mode #site-banner,
+        body.modal-mode #site-nav,
+        body.modal-mode header,
+        body.modal-mode #auth-btn-container { display: none !important; }
+        body.modal-mode main { padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -179,6 +186,11 @@
     </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    if (new URLSearchParams(location.search).get('modal') === '1') {
+        document.body.classList.add('modal-mode');
+    }
+</script>
 <script src="config.js"></script>
 <script src="session.js"></script>
 <script src="nav.js"></script>
@@ -198,7 +210,7 @@
     const main = document.getElementById('main-content');
 
     if (!title) {
-        main.innerHTML = '<p class="not-found">곡 정보가 없습니다. <a href="table.html" style="color:rgba(255,255,255,0.6)">Table로 돌아가기</a></p>';
+        main.innerHTML = '<p class="not-found">No song information found. <a href="table.html" style="color:rgba(255,255,255,0.6)">Back to Table</a></p>';
     } else {
         // DPOPz DATABASE.xlsx Sheet3(Lv.x) + Apps Script 병렬 로드
         let lvxIndex = {};
@@ -295,12 +307,12 @@
                 note:  String(r0[8] ?? '').trim(),
             } : null;
 
-                // difficulty를 submitVote()에서 참조할 수 있도록 저장
+                // Store difficulty for submitVote()
                 window._voteTitle      = row ? row.title : title;
                 window._voteDifficulty = row ? (row.diff || '') : '';
 
                 if (!row) {
-                    main.innerHTML = `<p class="not-found">"${title}" 곡을 찾을 수 없습니다. <a href="table.html" style="color:rgba(255,255,255,0.6)">Table로 돌아가기</a></p>`;
+                    main.innerHTML = `<p class="not-found">"${title}" not found. <a href="table.html" style="color:rgba(255,255,255,0.6)">Back to Table</a></p>`;
                     return;
                 }
 
@@ -378,7 +390,7 @@
                     </div>
                 `;
 
-                // 셀렉트 색상 초기화
+                // Initialize select colors
                 ['opt1','opt2','opt3'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) updateSelectColor(el);
@@ -406,8 +418,8 @@
                 }
         })
         .catch(err => {
-                console.error('데이터 로드 실패:', err);
-                main.innerHTML = '<p class="not-found">데이터를 불러오지 못했습니다.</p>';
+                console.error('Data load failed:', err);
+                main.innerHTML = '<p class="not-found">Failed to load data.</p>';
             });
     }
 
@@ -427,7 +439,7 @@
             display.textContent = `${bytes} / 100 bytes`;
             display.style.color = bytes >= 90 ? 'rgba(255,160,80,0.8)' : 'rgba(255,255,255,0.3)';
         }
-        // 100바이트 초과 시 잘라내기
+        // Trim if over 100 bytes
         if (bytes > 100) {
             let trimmed = el.value;
             while (new TextEncoder().encode(trimmed).length > 100) {
@@ -442,7 +454,7 @@
         const btn = document.getElementById('submitBtn');
         const msg = document.getElementById('resultMsg');
 
-        // Submit 버튼을 누른 시각을 한국 시간(KST)으로 기록
+        // Record submission time (KST)
         const now = new Date();
         const timestamp = now.toLocaleString('ko-KR', {
             timeZone: 'Asia/Seoul',
@@ -469,7 +481,7 @@
         };
 
         btn.disabled = true;
-        btn.textContent = '전송 중...';
+        btn.textContent = 'Sending...';
         msg.style.display = 'none';
 
         const query = new URLSearchParams(payload).toString();
@@ -478,19 +490,19 @@
         .then(res => res.json())
         .then(result => {
             if (result.status === 'success') {
-                msg.textContent = '투표가 완료되었습니다!';
+                msg.textContent = 'Vote submitted successfully!';
                 msg.className = 'result-msg success';
                 msg.style.display = 'block';
-                btn.textContent = '완료';
+                btn.textContent = 'Done';
 
-                // 돌아가기 버튼 추가
+                
             } else {
                 throw new Error(result.message || 'unknown error');
             }
         })
         .catch(err => {
-            console.error('전송 실패:', err);
-            msg.textContent = '전송에 실패했습니다. 다시 시도해주세요.';
+            console.error('Submission failed:', err);
+            msg.textContent = 'Submission failed. Please try again.';
             msg.className = 'result-msg error';
             msg.style.display = 'block';
             btn.disabled = false;
@@ -500,9 +512,6 @@
 </script>
 
 
-    <footer>
-        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
-        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ provided by XYZ012</p>
-    </footer>
+    <footer id="site-footer"></footer>
 </body>
 </html>
