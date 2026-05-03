@@ -11,40 +11,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bannerEl) {
         if (typeof BANNER_LINES !== 'undefined' && BANNER_LINES.length > 0) {
             bannerEl.style.display = '';
-
-            // 라벨 + 문장들 조합
             let html = '<div style="display:flex; align-items:flex-start; justify-content:center; gap:16px; flex-wrap:wrap; padding: 0 16px;">';
-
-            // 왼쪽 라벨
             html += `<span style="color:rgba(255,180,60,1); font-weight:bold; white-space:nowrap; flex-shrink:0;">${BANNER_LABEL}</span>`;
-
-            // 오른쪽 문장들
             html += '<div style="text-align:left; line-height:1.9;">';
-            BANNER_LINES.forEach(line => {
-                html += `<div>${line}</div>`;
-            });
+            BANNER_LINES.forEach(line => { html += `<div>${line}</div>`; });
             html += '</div></div>';
-
             bannerEl.innerHTML = html;
         } else {
             bannerEl.style.display = 'none';
         }
     }
 
-    // ── Logout 버튼 렌더링 ───────────────────
-    const logoutEl = document.getElementById('logout-btn-container');
-    if (logoutEl) {
+    // ── 오른쪽 상단 Login / Logout 버튼 ─────
+    const authEl = document.getElementById('auth-btn-container');
+    if (authEl) {
         const session = (typeof checkSession === 'function') ? checkSession() : null;
+        const btn = document.createElement('button');
+
         if (session) {
-            const btn = document.createElement('button');
+            // 로그인 상태 → Logout
             btn.textContent = 'Logout';
-            btn.className   = 'logout-btn';
+            btn.className   = 'auth-corner-btn logout';
             btn.onclick     = () => {
                 if (typeof clearSession === 'function') clearSession();
                 location.href = 'login.html';
             };
-            logoutEl.appendChild(btn);
+        } else {
+            // 미로그인 상태 → Login (login/signup 페이지에서는 숨김)
+            const currentPage = location.pathname.split('/').pop();
+            if (currentPage === 'login.html' || currentPage === 'signup.html') return;
+            btn.textContent = 'Login';
+            btn.className   = 'auth-corner-btn login';
+            btn.onclick     = () => { location.href = 'login.html'; };
         }
+
+        authEl.appendChild(btn);
     }
 
     // ── 버전 표시 ────────────────────────────

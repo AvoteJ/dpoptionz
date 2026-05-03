@@ -9,19 +9,7 @@
         body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
         header { width: 100%; padding: 20px 0; }
         .nav-container { display: flex; justify-content: center; gap: 15px; }
-        .logout-btn {
-            background-color: transparent;
-            border: 1px solid rgba(255, 100, 100, 0.5);
-            color: rgba(255, 130, 130, 0.85);
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 14pt;
-            font-family: inherit;
-            cursor: pointer;
-            transition: background-color 0.15s;
-        }
-        .logout-btn:hover { background-color: rgba(255, 80, 80, 0.15); }
-        .nav-link { text-decoration: none; color: rgba(255, 255, 255, 0.8); background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); padding: 8px 16px; border-radius: 4px; font-size: 14pt; }
+.nav-link { text-decoration: none; color: rgba(255, 255, 255, 0.8); background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); padding: 8px 16px; border-radius: 4px; font-size: 14pt; }
 
         main { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 80px; gap: 40px; }
 
@@ -32,6 +20,33 @@
         .about-content a:hover { color: white; text-decoration: underline; }
 
         .version { font-size: 13pt; color: rgba(255, 255, 255, 0.35); margin-top: 20px; }
+        /* 오른쪽 상단 Login / Logout 버튼 */
+        #auth-btn-container {
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            z-index: 9999;
+        }
+        .auth-corner-btn {
+            padding: 7px 16px;
+            border-radius: 4px;
+            font-size: 11pt;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .auth-corner-btn.logout {
+            background-color: transparent;
+            border: 1px solid rgba(255, 100, 100, 0.55);
+            color: rgba(255, 130, 130, 0.9);
+        }
+        .auth-corner-btn.logout:hover { background-color: rgba(255, 80, 80, 0.15); }
+        .auth-corner-btn.login {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.75);
+        }
+        .auth-corner-btn.login:hover { background-color: rgba(255, 255, 255, 0.1); }
     </style>
 </head>
 <body>
@@ -43,7 +58,6 @@
             <a href="index.html" class="nav-link">Top</a>
             <a href="table.html" class="nav-link">Table</a>
             <a href="about.html" class="nav-link">About</a>
-            <div id="logout-btn-container"></div>
         </nav>
     </header>
 
