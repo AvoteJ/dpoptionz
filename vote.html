@@ -9,6 +9,18 @@
         body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
         header { width: 100%; padding: 20px 0; }
         .nav-container { display: flex; justify-content: center; gap: 15px; }
+        .logout-btn {
+            background-color: transparent;
+            border: 1px solid rgba(255, 100, 100, 0.5);
+            color: rgba(255, 130, 130, 0.85);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14pt;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .logout-btn:hover { background-color: rgba(255, 80, 80, 0.15); }
         .nav-link { text-decoration: none; color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.5); padding: 8px 16px; border-radius: 4px; }
 
         main { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
@@ -113,11 +125,14 @@
 </head>
 <body>
 
+    <div id="site-banner" style="width:100%; background-color:rgba(40,30,10,0.5); padding:10px 0; font-size:10.5pt; color:rgba(255,200,100,0.85);"></div>
+
     <header>
         <nav class="nav-container">
             <a href="index.html" class="nav-link">&lt;Top&gt;</a>
             <a href="table.html" class="nav-link">&lt;Table&gt;</a>
             <a href="about.html" class="nav-link">&lt;About&gt;</a>
+            <div id="logout-btn-container"></div>
         </nav>
     </header>
 
@@ -128,6 +143,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script src="session.js"></script>
+<script src="banner.js"></script>
 <script>
     // 로그인 세션 확인 → 없으면 login.html로 이동 후 실행 중단
     (function() {
