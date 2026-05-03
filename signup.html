@@ -15,6 +15,8 @@
             min-height: 100vh;
             margin: 0;
         }
+        header { width: 100%; padding: 20px 0; }
+        .nav-container { display: flex; justify-content: center; gap: 15px; }
         .nav-link {
             text-decoration: none;
             color: rgba(255, 255, 255, 0.8);
@@ -141,66 +143,16 @@
             transition: color 0.15s;
         }
         .back-link:hover { color: rgba(255, 255, 255, 0.7); }
-        /* ── 공통 네비게이션 ── */
-        header { width: 100%; padding: 20px 0; }
-        .nav-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .nav-link {
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.8);
-            background-color: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 14pt;
-            font-family: inherit;
-        }
-        .nav-link:hover { background-color: rgba(255,255,255,0.08); }
-        .nav-link-active {
-            background-color: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.85);
-            color: white;
-        }
-        /* 오른쪽 상단 Login / Logout 버튼 */
-        #auth-btn-container {
-            position: fixed;
-            top: 14px;
-            right: 18px;
-            z-index: 9999;
-        }
-        .auth-corner-btn {
-            padding: 7px 16px;
-            border-radius: 4px;
-            font-size: 11pt;
-            font-family: inherit;
-            cursor: pointer;
-            transition: background-color 0.15s;
-        }
-        .auth-corner-btn.logout {
-            background-color: transparent;
-            border: 1px solid rgba(255,100,100,0.55);
-            color: rgba(255,130,130,0.9);
-        }
-        .auth-corner-btn.logout:hover { background-color: rgba(255,80,80,0.15); }
-        .auth-corner-btn.login {
-            background-color: transparent;
-            border: 1px solid rgba(255,255,255,0.4);
-            color: rgba(255,255,255,0.75);
-        }
-        .auth-corner-btn.login:hover { background-color: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
-    <div style="width:100%; background-color:rgba(255,165,0,0.15); padding:10px 0; text-align:center; font-size:12pt; color:rgba(255,200,100,0.9);">
-        &lt;BETA OPEN&gt; 현재 페이지는 지속적으로 업데이트 중으로, 오류가 아직 많습니다. 또한, Vote DB 혼선 방지를 위해 투표 기능이 작동하지 않습니다.
-    </div>
-
-        <div id="auth-btn-container"></div>
-
-    <div id="site-banner" style="width:100%; background-color:rgba(40,30,10,0.5); padding:10px 0; font-size:10.5pt; color:rgba(255,200,100,0.85);"></div>
-
     <header>
-        <nav class="nav-container" id="site-nav"></nav>
+        <nav class="nav-container">
+            <a href="index.html" class="nav-link">Top</a>
+            <a href="table.html" class="nav-link">Table</a>
+            <a href="about.html" class="nav-link">About</a>
+        </nav>
     </header>
 
     <main>
@@ -278,8 +230,6 @@
     </footer>
 
 <script src="config.js"></script>
-<script src="session.js"></script>
-<script src="nav.js"></script>
 <script>
     // ── Validation ───────────────────────────────────────────
 
