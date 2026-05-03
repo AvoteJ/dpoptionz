@@ -54,6 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
             a.className   = 'nav-link' + (href === current ? ' nav-link-active' : '');
             navEl.appendChild(a);
         });
+
+        // How to use 링크 (nav 아래 별도 줄)
+        const how2useWrap = document.getElementById('how2use-link');
+        if (how2useWrap) {
+            const a = document.createElement('a');
+            a.href      = 'how2use.html';
+            a.textContent = 'How to use DPOPz?';
+            a.style.cssText = 'color:rgba(255,165,0,0.9); text-decoration:underline; font-size:10pt; cursor:pointer;';
+            a.onmouseover = () => { a.style.color = 'rgba(255,140,0,1)'; };
+            a.onmouseout  = () => { a.style.color = 'rgba(255,165,0,0.9)'; };
+            how2useWrap.appendChild(a);
+        }
     }
 
     // ── 3. Login / Logout 버튼 ───────────────
@@ -91,15 +103,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const verEl = document.getElementById('version-display');
     if (verEl && typeof APP_VERSION !== 'undefined') {
         verEl.textContent = 'ver. ' + APP_VERSION;
-    }
-
-    // ── 5. 푸터 렌더링 ───────────────────────
-    const footerEl = document.getElementById('site-footer');
-    if (footerEl) {
-        const l1 = (typeof FOOTER_LINE1 !== 'undefined') ? FOOTER_LINE1 : '';
-        const l2 = (typeof FOOTER_LINE2 !== 'undefined') ? FOOTER_LINE2 : '';
-        footerEl.innerHTML =
-            `<p style="text-align:center;font-size:10pt;color:#888888;margin:0;padding:12px 0 4px;">${l1}</p>` +
-            `<p style="text-align:center;font-size:10pt;color:#888888;margin:0;padding:4px 0 12px;">${l2}</p>`;
     }
 });
