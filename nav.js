@@ -92,4 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (verEl && typeof APP_VERSION !== 'undefined') {
         verEl.textContent = 'ver. ' + APP_VERSION;
     }
+
+    // ── 5. 푸터 렌더링 ───────────────────────
+    const footerEl = document.getElementById('site-footer');
+    if (footerEl) {
+        const l1 = (typeof FOOTER_LINE1 !== 'undefined') ? FOOTER_LINE1 : '';
+        const l2 = (typeof FOOTER_LINE2 !== 'undefined') ? FOOTER_LINE2 : '';
+        footerEl.innerHTML =
+            `<p style="text-align:center;font-size:10pt;color:#888888;margin:0;padding:12px 0 4px;">${l1}</p>` +
+            `<p style="text-align:center;font-size:10pt;color:#888888;margin:0;padding:4px 0 12px;">${l2}</p>`;
+    }
 });
