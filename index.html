@@ -354,7 +354,7 @@
 
     // ── Vote 모달 ────────────────────────────
     function openVoteModal(title, diff) {
-        const url = 'vote.html?title=' + encodeURIComponent(title) + '&diff=' + encodeURIComponent(diff || '');
+        const url = 'vote.html?modal=1&title=' + encodeURIComponent(title) + '&diff=' + encodeURIComponent(diff || '');
         document.getElementById('vote-modal-iframe').src = url;
         document.getElementById('vote-modal-overlay').classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -364,13 +364,10 @@
         document.getElementById('vote-modal-iframe').src = '';
         document.body.style.overflow = '';
     }
-    // ESC 키로 닫기
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVoteModal(); });
-    // 오버레이 클릭으로 닫기
     document.getElementById('vote-modal-overlay').addEventListener('click', function(e) {
         if (e.target === this) closeVoteModal();
     });
-    // vote.html 내부에서 보내는 닫기 메시지 수신
     window.addEventListener('message', e => { if (e.data === 'closeVoteModal') closeVoteModal(); });
 
 </script>
