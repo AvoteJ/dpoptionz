@@ -9,7 +9,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvITUuHOMQJntd
 
 // ── 버전 정보 ────────────────────────────────
 // version.js 대신 여기서 관리합니다.
-const APP_VERSION = '26.05.02[BETA]';
+const APP_VERSION = '26.05.03[TEST OPEN]';
 
 // ── 상단 배너 설정 ────────────────────────────
 // BANNER_LABEL : 배너 왼쪽 라벨 (빈 문자열이면 라벨 숨김)
