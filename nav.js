@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             bannerEl.innerHTML = `
                 <div style="display:flex;align-items:center;width:100%;padding:0 16px;box-sizing:border-box;gap:12px;">
-                    ${ label ? `<span style="color:rgba(220,150,30,1);font-weight:bold;white-space:nowrap;flex-shrink:0;">${label}</span><span style="color:rgba(255,200,100,0.4);flex-shrink:0;">|</span>` : '' }
+                    ${ label ? `<span style="color:rgba(220,150,30,1);font-weight:bold;white-space:nowrap;flex-shrink:0;">${label}</span>` : '' }
                     <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${text}</span>
                 </div>
             `;
