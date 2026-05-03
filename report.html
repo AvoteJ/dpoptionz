@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>Double Play Optionz - Report</title>
+    <style>
+        body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+
+        /* ── 공통 네비게이션 ── */
+        header { width: 100%; padding: 20px 0; }
+        .nav-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14pt;
+            font-family: inherit;
+        }
+        .nav-link:hover { background-color: rgba(255,255,255,0.08); }
+        .nav-link-active {
+            background-color: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.85);
+            color: white;
+        }
+        #auth-btn-container { position: fixed; top: 14px; right: 18px; z-index: 9999; }
+        .auth-corner-btn { padding: 7px 16px; border-radius: 4px; font-size: 11pt; font-family: inherit; cursor: pointer; transition: background-color 0.15s; }
+        .auth-corner-btn.logout { background-color: transparent; border: 1px solid rgba(255,100,100,0.55); color: rgba(255,130,130,0.9); }
+        .auth-corner-btn.logout:hover { background-color: rgba(255,80,80,0.15); }
+        .auth-corner-btn.login { background-color: transparent; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.75); }
+        .auth-corner-btn.login:hover { background-color: rgba(255,255,255,0.1); }
+
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 60px; gap: 28px; }
+
+        .report-box {
+            width: 90%;
+            max-width: 560px;
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+        .report-box h2 {
+            margin: 0 0 4px 0;
+            font-size: 13pt;
+            font-weight: normal;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 14px;
+        }
+        .field-row { display: flex; flex-direction: column; gap: 6px; }
+        .field-label { font-size: 9.5pt; color: rgba(255,255,255,0.5); }
+        .field-input, .field-select {
+            padding: 10px 14px;
+            background-color: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 11pt;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .field-input:focus, .field-select:focus { border-color: rgba(255,255,255,0.5); }
+        .field-select option { background-color: #444; }
+        .field-textarea {
+            padding: 10px 14px;
+            background-color: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 11pt;
+            font-family: inherit;
+            outline: none;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .field-textarea:focus { border-color: rgba(255,255,255,0.5); }
+        .field-textarea::placeholder { color: rgba(255,255,255,0.2); }
+        .submit-btn {
+            margin-top: 6px;
+            padding: 11px;
+            background-color: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.85);
+            border-radius: 4px;
+            font-size: 11pt;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .submit-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .result-msg {
+            display: none; font-size: 9.5pt; text-align: center;
+            padding: 10px; border-radius: 4px;
+        }
+        .result-msg.success { color: rgba(100,220,100,0.9); background-color: rgba(60,140,60,0.2); border: 1px solid rgba(60,140,60,0.4); }
+        .result-msg.error   { color: rgba(255,100,100,0.9); background-color: rgba(160,60,60,0.2); border: 1px solid rgba(160,60,60,0.4); }
+    </style>
+</head>
+<body>
+
+    <div id="auth-btn-container"></div>
+    <div id="site-banner" style="width:100%; background-color:rgba(40,30,10,0.5); padding:10px 0; font-size:10.5pt; color:rgba(255,200,100,0.85);"></div>
+
+    <header>
+        <nav class="nav-container" id="site-nav"></nav>
+    </header>
+
+    <main>
+        <div class="report-box">
+            <h2>Report</h2>
+
+            <div class="field-row">
+                <span class="field-label">Category</span>
+                <select id="repCategory" class="field-select">
+                    <option value="">-- Select --</option>
+                    <option value="bug">Bug / Error</option>
+                    <option value="data">Data Issue</option>
+                    <option value="ui">UI / Display</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="field-row">
+                <span class="field-label">Page</span>
+                <select id="repPage" class="field-select">
+                    <option value="">-- Select --</option>
+                    <option value="index">Top (index)</option>
+                    <option value="table">Table</option>
+                    <option value="vote">Vote</option>
+                    <option value="login">Login</option>
+                    <option value="signup">Sign Up</option>
+                    <option value="about">About</option>
+                    <option value="other">Other / Unknown</option>
+                </select>
+            </div>
+
+            <div class="field-row">
+                <span class="field-label">Description</span>
+                <textarea id="repDesc" class="field-textarea" placeholder="Please describe the issue in detail."></textarea>
+            </div>
+
+            <div class="result-msg" id="resultMsg"></div>
+            <button class="submit-btn" id="submitBtn" onclick="doReport()">Submit</button>
+        </div>
+    </main>
+
+    <footer>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
+        <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
+    </footer>
+
+<script src="config.js"></script>
+<script src="session.js"></script>
+<script src="nav.js"></script>
+<script>
+    async function doReport() {
+        const category = document.getElementById('repCategory').value;
+        const page     = document.getElementById('repPage').value;
+        const desc     = document.getElementById('repDesc').value.trim();
+        const btn      = document.getElementById('submitBtn');
+        const msg      = document.getElementById('resultMsg');
+
+        if (!category) return showResult('error', 'Please select a category.');
+        if (!desc)     return showResult('error', 'Please enter a description.');
+
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+
+        btn.disabled    = true;
+        btn.textContent = 'Sending...';
+        msg.style.display = 'none';
+
+        try {
+            const query = new URLSearchParams({
+                action:   'report',
+                category, page,
+                desc,
+                userId:   session ? session.id : '(guest)',
+            }).toString();
+
+            const res  = await fetch(`${APPS_SCRIPT_URL}?${query}`);
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showResult('success', 'Report submitted. Thank you!');
+                btn.textContent = 'Done';
+                ['repCategory','repPage','repDesc'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.disabled = true;
+                });
+            } else {
+                showResult('error', data.message || 'An error occurred.');
+                btn.disabled    = false;
+                btn.textContent = 'Submit';
+            }
+        } catch(e) {
+            showResult('error', 'Could not connect to the server.');
+            btn.disabled    = false;
+            btn.textContent = 'Submit';
+        }
+    }
+
+    function showResult(type, msg) {
+        const el = document.getElementById('resultMsg');
+        el.textContent  = msg;
+        el.className    = 'result-msg ' + type;
+        el.style.display = 'block';
+    }
+</script>
+</body>
+</html>
