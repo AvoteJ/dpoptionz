@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.textContent  = 'Log Out';
             btn.className    = 'auth-corner-btn logout';
-            btn.style.marginLeft = 'auto';
+            btn.style.position = 'absolute';
+            btn.style.right = '20px';
             btn.onclick = () => {
                 if (typeof clearSession === 'function') clearSession();
                 location.href = 'login.html';
@@ -78,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.textContent  = 'Log In';
             btn.className    = 'auth-corner-btn login';
-            btn.style.marginLeft = 'auto';
+            btn.style.position = 'absolute';
+            btn.style.right = '20px';
             btn.onclick = () => {
                 sessionStorage.setItem('dpopz_returnTo', location.href);
                 location.href = 'login.html';
