@@ -185,11 +185,11 @@
                 <input type="password" id="signPw" class="field-input"
                     maxlength="30"
                     oninput="validatePw(); validatePwConfirm();"
-                    onkeydown="if(event.key==='Enter') document.getElementById('signPwConfirm').focus()">
+                    onkeydown="if(event.key==='Enter') document.getElementById('signIidx').focus()">
                 <span class="field-hint" id="hintPw">At least 6 characters, including letters and numbers.</span>
             </div>
 
-            <!-- PASSWORD CONFIRM -->
+            <!-- CONFIRM PASSWORD -->
             <div class="field-row">
                 <span class="field-label">Confirm Password</span>
                 <input type="password" id="signPwConfirm" class="field-input"
@@ -235,6 +235,8 @@
 
 <script src="config.js"></script>
 <script>
+    // ── Validation ───────────────────────────────────────────
+
     function validateId() {
         const val  = document.getElementById('signId').value;
         const inp  = document.getElementById('signId');
@@ -317,7 +319,9 @@
         hint.textContent = msg;
     }
 
+    // ── Submit ───────────────────────────────────────────────
     async function doSignup() {
+        // Re-validate all fields
         validateId(); validatePw(); validatePwConfirm(); validateIidx(); validateEmail();
 
         const id     = document.getElementById('signId').value.trim();
@@ -370,9 +374,9 @@
     }
 
     function showResult(type, msg) {
-        const el    = document.getElementById('resultMsg');
+        const el = document.getElementById('resultMsg');
         el.textContent = msg;
-        el.className   = 'result-msg ' + type;
+        el.className = 'result-msg ' + type;
         el.style.display = 'block';
     }
     function hideResult() {
