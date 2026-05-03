@@ -164,13 +164,6 @@
             color: rgba(255, 255, 255, 0.75);
         }
         .auth-corner-btn.login:hover { background-color: rgba(255, 255, 255, 0.1); }
-
-        /* ── 모달 모드: 배너/네비/로그아웃 숨김 ── */
-        body.modal-mode #site-banner,
-        body.modal-mode #site-nav,
-        body.modal-mode header,
-        body.modal-mode #auth-btn-container { display: none !important; }
-        body.modal-mode main { padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -186,12 +179,6 @@
     </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-    // 모달 모드 감지 (?modal=1 파라미터)
-    if (new URLSearchParams(location.search).get('modal') === '1') {
-        document.body.classList.add('modal-mode');
-    }
-</script>
 <script src="config.js"></script>
 <script src="session.js"></script>
 <script src="nav.js"></script>
@@ -467,6 +454,8 @@
         const noteEl = document.getElementById('voteNote');
         const noteVal = noteEl ? noteEl.value.trim() : '';
 
+        const _sess = (typeof checkSession === 'function') ? checkSession() : null;
+
         const payload = {
             action:     'vote',
             timestamp:  timestamp,
@@ -476,6 +465,7 @@
             option2:    document.getElementById('opt2').value,
             option3:    document.getElementById('opt3').value,
             note:       noteVal,
+            id:         _sess ? _sess.id : '',
         };
 
         btn.disabled = true;
@@ -494,15 +484,6 @@
                 btn.textContent = '완료';
 
                 // 돌아가기 버튼 추가
-                const backBtn = document.createElement('a');
-                backBtn.href = 'table.html';
-                backBtn.textContent = '← 목록으로 돌아가기';
-                backBtn.className = 'submit-btn';
-                backBtn.style.marginTop = '12px';
-                backBtn.style.textDecoration = 'none';
-                backBtn.style.display = 'block';
-                backBtn.style.textAlign = 'center';
-                msg.insertAdjacentElement('afterend', backBtn);
             } else {
                 throw new Error(result.message || 'unknown error');
             }
