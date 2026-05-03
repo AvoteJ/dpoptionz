@@ -419,10 +419,10 @@
             resultArea.innerHTML = '<p style="text-align:center;">검색 결과가 없습니다.</p>';
         }
     }
-    window.addEventListener('message', e => { if (e.data === 'closeVoteModal') closeVoteModal(); });
 
+    // ── Vote 모달 (정적 DOM, 값만 교체) ──────
+    let _vmTitle = '', _vmDiff = '';
 
-    // ── Vote 모달 (직접 렌더링) ──────────────
     function optColor(v) {
         if (v === 'OFF')    return '#808080';
         if (v === 'MIRROR') return 'rgba(150,220,150,1)';
@@ -453,104 +453,76 @@
     }
 
     function openVoteModal(title, diff) {
+        _vmTitle = title;
+        _vmDiff  = diff || '';
+
         const session = (typeof checkSession === 'function') ? checkSession() : null;
-        const body = document.getElementById('vote-modal-body');
-        body.innerHTML = '';
 
-        // 세션 체크
-        if (!session) {
-            body.innerHTML = '<p class="vm-not-found">Please <a href="login.html" style="color:rgba(255,165,0,0.9);">log in</a> to vote.</p>';
-            document.getElementById('vote-modal-overlay').classList.add('open');
-            document.body.style.overflow = 'hidden';
-            return;
-        }
+        // 값 초기화
+        document.getElementById('vm-title').textContent = title;
+        document.getElementById('vm-diff').textContent  = diff || '';
+        const rowData = (typeof tableData !== 'undefined' ? tableData : [])
+            .find(r => r.title === title && (!diff || r.diff === diff)) || null;
+        document.getElementById('vm-lv').textContent  = rowData ? rowData.lv : '';
+        document.getElementById('vm-lvx').textContent = (typeof getLvx === 'function') ? getLvx(title, diff) : '';
 
-        // 곡 데이터 조회
+        // Option 셀 업데이트
+        const optCell = document.getElementById('vm-option');
+        optCell.innerHTML = '';
         const key = `${title}|${diff}`;
-        const rowData = (typeof tableData !== 'undefined' ? tableData : []).find(r => r.title === title && (!diff || r.diff === diff)) || null;
-        const distrib = optionDistrib ? (optionDistrib[key] || []) : [];
-        const lvx = (typeof getLvx === 'function') ? getLvx(title, diff) : '';
-
-        // 곡 정보 테이블
-        const table = document.createElement('table');
-        const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>Title</th><th>Difficulty</th><th>Lv</th><th>Lv.x</th><th>Option</th></tr>';
-        const tbody = document.createElement('tbody');
-        const tr = document.createElement('tr');
-
-        // Title
-        [title, diff, rowData ? rowData.lv : '', lvx].forEach(v => {
-            const td = document.createElement('td'); td.textContent = v || ''; tr.appendChild(td);
-        });
-        // Option cell
-        const optTd = document.createElement('td');
-        optTd.style.cssText = 'text-align:left; line-height:1.8;';
-        if (distrib.length === 0) { optTd.style.color='#666'; optTd.textContent='-'; }
-        else if (distrib.length === 1) { optTd.appendChild(makeOptSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3)); }
+        const distrib = (typeof optionDistrib !== 'undefined') ? (optionDistrib[key] || []) : [];
+        if (distrib.length === 0) { optCell.style.color='#666'; optCell.textContent='-'; }
+        else if (distrib.length === 1) { optCell.style.color=''; optCell.appendChild(makeOptSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3)); }
         else {
+            optCell.style.color='';
             distrib.forEach((d,i) => {
                 const line = document.createElement('div');
                 const pre = document.createElement('span'); pre.textContent=`[${i+1}] `; pre.style.color='rgba(255,255,255,0.4)';
                 line.appendChild(pre); line.appendChild(makeOptSpan(d.opt1,d.opt2,d.opt3));
                 const pct = document.createElement('span'); pct.textContent=` (${d.pct}%)`; pct.style.color='rgba(255,255,255,0.35)';
-                line.appendChild(pct); optTd.appendChild(line);
+                line.appendChild(pct); optCell.appendChild(line);
             });
         }
-        tr.appendChild(optTd);
-        tbody.appendChild(tr);
-        table.appendChild(thead); table.appendChild(tbody);
-        body.appendChild(table);
 
-        // 투표 폼
-        body.insertAdjacentHTML('beforeend', `
-            <div class="vm-vote-form">
-                <h2>Vote</h2>
-                <div class="vm-vote-row">
-                    <span class="vm-vote-label">FLIP</span>
-                    <select id="vm-opt1" class="vm-vote-select" onchange="vmUpdateSelectColor(this)">
-                        <option value="OFF">OFF</option><option value="FLIP">FLIP</option>
-                    </select>
-                </div>
-                <div class="vm-vote-row">
-                    <span class="vm-vote-label">1P(LEFT)</span>
-                    <select id="vm-opt2" class="vm-vote-select" onchange="vmUpdateSelectColor(this)">
-                        <option value="OFF">OFF</option><option value="MIRROR">MIRROR</option>
-                        <option value="RANDOM">RANDOM</option><option value="R-RANDOM">R-RANDOM</option>
-                        <option value="S-RANDOM">S-RANDOM</option>
-                    </select>
-                </div>
-                <div class="vm-vote-row">
-                    <span class="vm-vote-label">2P(RIGHT)</span>
-                    <select id="vm-opt3" class="vm-vote-select" onchange="vmUpdateSelectColor(this)">
-                        <option value="OFF">OFF</option><option value="MIRROR">MIRROR</option>
-                        <option value="RANDOM">RANDOM</option><option value="R-RANDOM">R-RANDOM</option>
-                        <option value="S-RANDOM">S-RANDOM</option>
-                    </select>
-                </div>
-                <div class="vm-vote-row" style="align-items:flex-start; margin-top:8px;">
-                    <span class="vm-vote-label" style="padding-top:8px;">Note</span>
-                    <div style="flex:1; max-width:500px;">
-                        <textarea id="vm-voteNote" class="vm-vote-textarea" maxlength="100"
-                            placeholder="Comment here" oninput="vmUpdateByteCount(this)"></textarea>
-                        <div id="vm-byteCount" style="font-size:9pt;color:rgba(255,255,255,0.3);text-align:right;margin-top:4px;">0 / 100 bytes</div>
-                    </div>
-                </div>
-                <button class="vm-submit-btn" id="vm-submitBtn" onclick="vmSubmitVote('${title.replace(/'/g,"\\'")}','${(diff||'').replace(/'/g,"\\'")}')">Submit</button>
-                <div class="vm-result-msg" id="vm-resultMsg"></div>
-            </div>
-        `);
-
-        // 셀렉트 색상 초기화
+        // 셀렉트/노트/버튼 초기화
         ['vm-opt1','vm-opt2','vm-opt3'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) vmUpdateSelectColor(el);
+            if (el) { el.value = 'OFF'; vmUpdateSelectColor(el); }
         });
+        const noteEl = document.getElementById('vm-voteNote');
+        if (noteEl) noteEl.value = '';
+        const byteEl = document.getElementById('vm-byteCount');
+        if (byteEl) byteEl.textContent = '0 / 100 bytes';
+        const msgEl = document.getElementById('vm-resultMsg');
+        if (msgEl) { msgEl.style.display='none'; msgEl.textContent=''; msgEl.className='vm-result-msg'; }
+        const btnEl = document.getElementById('vm-submitBtn');
+        if (btnEl) { btnEl.disabled=false; btnEl.textContent='Submit'; }
+
+        // 로그인 안된 경우
+        const loginNotice = document.getElementById('vm-login-notice');
+        const voteForm    = document.querySelector('.vm-vote-form');
+        const songTable   = document.getElementById('vm-song-table');
+        if (!session) {
+            if (loginNotice) loginNotice.style.display = 'block';
+            if (btnEl) btnEl.style.display = 'none';
+            ['vm-opt1','vm-opt2','vm-opt3','vm-voteNote'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = true;
+            });
+        } else {
+            if (loginNotice) loginNotice.style.display = 'none';
+            if (btnEl) btnEl.style.display = '';
+            ['vm-opt1','vm-opt2','vm-opt3','vm-voteNote'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = false;
+            });
+        }
 
         document.getElementById('vote-modal-overlay').classList.add('open');
         document.body.style.overflow = 'hidden';
     }
 
-    function vmSubmitVote(title, diff) {
+    function vmSubmitVote() {
         const btn = document.getElementById('vm-submitBtn');
         const msg = document.getElementById('vm-resultMsg');
         const session = (typeof checkSession === 'function') ? checkSession() : null;
@@ -563,7 +535,8 @@
         const noteVal = (document.getElementById('vm-voteNote') || {value:''}).value.trim();
 
         const payload = {
-            action: 'vote', timestamp, title, difficulty: diff,
+            action: 'vote', timestamp,
+            title: _vmTitle, difficulty: _vmDiff,
             option1: document.getElementById('vm-opt1').value,
             option2: document.getElementById('vm-opt2').value,
             option3: document.getElementById('vm-opt3').value,
@@ -583,9 +556,7 @@
                 msg.className = 'vm-result-msg success';
                 msg.style.display = 'block';
                 btn.textContent = 'Done';
-            } else {
-                throw new Error(result.message || 'unknown error');
-            }
+            } else { throw new Error(result.message || 'unknown error'); }
         })
         .catch(err => {
             msg.textContent = 'Submission failed. Please try again.';
@@ -598,7 +569,6 @@
 
     function closeVoteModal() {
         document.getElementById('vote-modal-overlay').classList.remove('open');
-        document.getElementById('vote-modal-body').innerHTML = '';
         document.body.style.overflow = '';
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVoteModal(); });
@@ -612,6 +582,9 @@
         <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:12px 0 4px;">ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER</p>
         <p style="text-align:center; font-size:10pt; color:#888888; margin:0; padding:4px 0 12px;">ⓒ data provided by XYZ012, 1899, siyamaki</p>
     </footer>
+<div id="vote-modal-body"></div>
+        </div>
+    </div>
 
     <!-- Vote 모달 -->
     <div id="vote-modal-overlay">
@@ -619,7 +592,67 @@
             <div id="vote-modal-header">
                 <button id="vote-modal-close" onclick="closeVoteModal()">✕ Close</button>
             </div>
-            <div id="vote-modal-body"></div>
+            <div id="vote-modal-body">
+                <!-- 곡 정보 테이블 -->
+                <table id="vm-song-table">
+                    <thead>
+                        <tr><th>Title</th><th>Difficulty</th><th>Lv</th><th>Lv.x</th><th>Option</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="vm-title"></td>
+                            <td id="vm-diff"></td>
+                            <td id="vm-lv"></td>
+                            <td id="vm-lvx"></td>
+                            <td id="vm-option" style="text-align:left; line-height:1.8;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- 투표 폼 -->
+                <div class="vm-vote-form">
+                    <h2>Vote</h2>
+                    <div class="vm-vote-row">
+                        <span class="vm-vote-label">FLIP</span>
+                        <select id="vm-opt1" class="vm-vote-select" onchange="vmUpdateSelectColor(this)">
+                            <option value="OFF">OFF</option>
+                            <option value="FLIP">FLIP</option>
+                        </select>
+                    </div>
+                    <div class="vm-vote-row">
+                        <span class="vm-vote-label">1P(LEFT)</span>
+                        <select id="vm-opt2" class="vm-vote-select" onchange="vmUpdateSelectColor(this)">
+                            <option value="OFF">OFF</option>
+                            <option value="MIRROR">MIRROR</option>
+                            <option value="RANDOM">RANDOM</option>
+                            <option value="R-RANDOM">R-RANDOM</option>
+                            <option value="S-RANDOM">S-RANDOM</option>
+                        </select>
+                    </div>
+                    <div class="vm-vote-row">
+                        <span class="vm-vote-label">2P(RIGHT)</span>
+                        <select id="vm-opt3" class="vm-vote-select" onchange="vmUpdateSelectColor(this)">
+                            <option value="OFF">OFF</option>
+                            <option value="MIRROR">MIRROR</option>
+                            <option value="RANDOM">RANDOM</option>
+                            <option value="R-RANDOM">R-RANDOM</option>
+                            <option value="S-RANDOM">S-RANDOM</option>
+                        </select>
+                    </div>
+                    <div class="vm-vote-row" style="align-items:flex-start; margin-top:8px;">
+                        <span class="vm-vote-label" style="padding-top:8px;">Note</span>
+                        <div style="flex:1; max-width:500px;">
+                            <textarea id="vm-voteNote" class="vm-vote-textarea" maxlength="100"
+                                placeholder="Comment here" oninput="vmUpdateByteCount(this)"></textarea>
+                            <div id="vm-byteCount" style="font-size:9pt;color:rgba(255,255,255,0.3);text-align:right;margin-top:4px;">0 / 100 bytes</div>
+                        </div>
+                    </div>
+                    <p id="vm-login-notice" style="display:none; text-align:center; color:rgba(255,165,0,0.9); font-size:10.5pt;">
+                        Please <a href="login.html" style="color:rgba(255,165,0,0.9); text-decoration:underline;">log in</a> to vote.
+                    </p>
+                    <button class="vm-submit-btn" id="vm-submitBtn" onclick="vmSubmitVote()">Submit</button>
+                    <div class="vm-result-msg" id="vm-resultMsg"></div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
