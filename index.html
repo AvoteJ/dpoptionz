@@ -239,9 +239,18 @@
 <script src="session.js"></script>
 <script src="nav.js"></script>
 <script>
+    let lvxIndex      = {};
     let tableData     = [];
     let voteResults   = {};
     let optionDistrib = {};
+    let trustData     = {}; // { userId: score }
+    let voteUserMap   = {}; // { 'Title|Diff|combo': [userId, ...] }
+
+    function getLvx(title, diff) {
+        const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
+        const code = diffMap[diff] || (diff ? diff.charAt(0).toUpperCase() : '');
+        return lvxIndex[`${title}|${code}`] || '';
+    }
 
     // 버전 표시
     document.addEventListener('DOMContentLoaded', () => {
@@ -266,16 +275,20 @@
 
         const distribMap = {};
         dbRows.forEach(r => {
-            const title = String(r[1] ?? '').trim();
-            const diff  = String(r[2] ?? '').trim();
-            const opt1  = String(r[3] ?? '').trim() || 'OFF';
-            const opt2  = String(r[4] ?? '').trim() || 'OFF';
-            const opt3  = String(r[5] ?? '').trim() || 'OFF';
+            const title  = String(r[1] ?? '').trim();
+            const diff   = String(r[2] ?? '').trim();
+            const opt1   = String(r[3] ?? '').trim() || 'OFF';
+            const opt2   = String(r[4] ?? '').trim() || 'OFF';
+            const opt3   = String(r[5] ?? '').trim() || 'OFF';
+            const userId = String(r[7] ?? '').trim() || String(r[0] ?? '').trim();
             if (!title || !diff) return;
             const key   = `${title}|${diff}`;
             const combo = `${opt1}|${opt2}|${opt3}`;
             if (!distribMap[key]) distribMap[key] = {};
             distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
+            const vmKey = `${key}|${combo}`;
+            if (!voteUserMap[vmKey]) voteUserMap[vmKey] = [];
+            if (userId) voteUserMap[vmKey].push(userId);
         });
 
         optionDistrib = {};
@@ -294,6 +307,19 @@
         const baseRows = XLSX.utils.sheet_to_json(sheet2, { header: 1 }).slice(1)
             .filter(r => r[0] && String(r[0]).toUpperCase() !== 'OFF');
 
+        // Sheet3: Lv.x 인덱스
+        const ws3   = workbook.Sheets[workbook.SheetNames[2]];
+        if (ws3) {
+            XLSX.utils.sheet_to_json(ws3, { header: 1 }).forEach(r => {
+                const lvx   = String(r[0] ?? '').trim();
+                const entry = String(r[1] ?? '').trim();
+                const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
+                if (m && lvx && !isNaN(parseFloat(lvx))) {
+                    lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
+                }
+            });
+        }
+
         tableData = baseRows.map(r => ({
             ver:   String(r[1] ?? '').trim(),
             title: String(r[2] ?? '').trim(),
@@ -302,7 +328,6 @@
             note:  String(r[8] ?? '').trim(),
             extra: String(r[9] ?? '').trim(),
         }));
-        // 로드 완료: Loading 숨기고 검색창 활성화
         const loadingEl = document.getElementById('data-loading');
         if (loadingEl) loadingEl.style.display = 'none';
         const searchEl = document.getElementById('searchInput');
@@ -346,6 +371,16 @@
         }
     }
 
+    function calcTrust(title, diff, opt1, opt2, opt3) {
+        const vmKey = `${title}|${diff}|${opt1}|${opt2}|${opt3}`;
+        const users = voteUserMap[vmKey] || [];
+        if (users.length === 0) return null;
+        const scores = users.map(u => trustData[u]).filter(s => s !== undefined && s !== null);
+        if (scores.length === 0) return null;
+        const sum = scores.reduce((a, b) => a + b, 0);
+        return Math.round(sum * 10) / 10;
+    }
+
     function optColor(val) {
         if (val === 'OFF')                          return '#808080';
         if (val === 'MIRROR')                       return 'rgba(150,220,150,1)';
@@ -382,7 +417,8 @@
             distrib.forEach((d, i) => {
                 const line = document.createElement('div');
                 const prefix = document.createElement('span');
-                prefix.textContent = `[${i + 1}] `;
+                const trust = calcTrust(title, diff, d.opt1, d.opt2, d.opt3);
+                prefix.textContent = trust !== null ? `[${i + 1} : ${trust}pt] ` : `[${i + 1}] `;
                 prefix.style.color = 'rgba(255,255,255,0.4)';
                 line.appendChild(prefix);
                 line.appendChild(makeSpan(d.opt1, d.opt2, d.opt3));
