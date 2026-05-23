@@ -490,15 +490,14 @@
     });
 
     // 데이터 로드: DPOPz_DATABASE.xlsx (Sheet1=DB, Sheet2=배치표, Sheet3=Lv.x) + 투표 집계
+    // 신뢰도 점수 별도 로드 (Promise.all 밖)
+    fetch(`${APPS_SCRIPT_URL}?action=trust`)
+        .then(r => r.json())
+        .then(d => { if (d.status === 'success') trustData = d.trust; })
+        .catch(() => {});
+
     Promise.all([
         fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
-
-        // 신뢰도 점수 로드
-        fetch(`${APPS_SCRIPT_URL}?action=trust`)
-            .then(r => r.json())
-            .then(d => { if (d.status === 'success') trustData = d.trust; })
-            .catch(() => {});
-
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
     .then(([xlsxBuffer, voteData]) => {
