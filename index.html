@@ -251,10 +251,12 @@
 
     Promise.all([
         fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
-        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
+        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} })),
+        fetch(`${APPS_SCRIPT_URL}?action=trust`).then(r => r.json()).catch(() => ({ status: 'error', trust: {} }))
     ])
-    .then(([xlsxBuffer, voteData]) => {
+    .then(([xlsxBuffer, voteData, trustRes]) => {
         voteResults = voteData.results || {};
+        if (trustRes.status === 'success') trustData = trustRes.trust;
         const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
 
         // Sheet1: 옵션 분포 인덱스 구성 (Timestamp=OFF 제외)

@@ -494,10 +494,12 @@
     // 데이터 로드: DPOPz_DATABASE.xlsx (Sheet1=DB, Sheet2=배치표, Sheet3=Lv.x) + 투표 집계
     Promise.all([
         fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
-        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
+        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} })),
+        fetch(`${APPS_SCRIPT_URL}?action=trust`).then(r => r.json()).catch(() => ({ status: 'error', trust: {} }))
     ])
-    .then(([xlsxBuffer, voteData]) => {
+    .then(([xlsxBuffer, voteData, trustRes]) => {
         voteResults = voteData.results || {};
+        if (trustRes.status === 'success') trustData = trustRes.trust;
 
         const wb = XLSX.read(xlsxBuffer, { type: 'array' });
 
