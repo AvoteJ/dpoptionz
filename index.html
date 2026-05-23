@@ -283,7 +283,7 @@
             const opt1   = String(r[3] ?? '').trim() || 'OFF';
             const opt2   = String(r[4] ?? '').trim() || 'OFF';
             const opt3   = String(r[5] ?? '').trim() || 'OFF';
-            const userId = String(r[7] ?? '').trim(); // H열: 투표자 ID
+            const userId = (String(r[7] ?? '').trim()) || (String(r[0] ?? '').trim()); // H열 없으면 Timestamp(A열) fallback
             if (!title || !diff) return;
             const key   = `${title}|${diff}`;
             const combo = `${opt1}|${opt2}|${opt3}`;
