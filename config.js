@@ -5,10 +5,10 @@
 // =============================================
 
 // ── Apps Script URL ──────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzf-IQwmbehAoNz_6IHeX4wDMC3ukrmROQMKgOORtmpr0sljEUX0GacRyIVOoKL39K1/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxcHcHeOTJlU7d1J_3Gm8SoDN4IWL0FpIsWnYAVG_CeTBZ-QRExyvmAFMNVKRlymUwk/exec';
 
 // ── 버전 정보 ────────────────────────────────
-const APP_VERSION = '26.05.22';
+const APP_VERSION = '26.05.23';
 
 // ── 상단 배너 설정 ────────────────────────────
 // BANNER_LABEL : 배너 왼쪽 라벨 (빈 문자열이면 라벨 숨김)
