@@ -238,9 +238,18 @@
 <script src="session.js"></script>
 <script src="nav.js"></script>
 <script>
+    let trustData     = {}; // { userId: score }
+    let voteUserMap   = {}; // { 'Title|Diff|combo': [userId, ...] }
     let tableData     = [];
     let voteResults   = {};
     let optionDistrib = {};
+    let lvxIndex      = {}; // { 'Title|DiffCode': 'Lv.x값' }
+
+    function getLvx(title, diff) {
+        const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
+        const code = diffMap[diff] || (diff ? diff.charAt(0).toUpperCase() : '');
+        return lvxIndex[`${title}|${code}`] || '';
+    }
 
     // 버전 표시
     document.addEventListener('DOMContentLoaded', () => {
@@ -250,6 +259,13 @@
 
     Promise.all([
         fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
+
+        // 신뢰도 점수 로드
+        fetch(`${APPS_SCRIPT_URL}?action=trust`)
+            .then(r => r.json())
+            .then(d => { if (d.status === 'success') trustData = d.trust; })
+            .catch(() => {});
+
         fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} }))
     ])
     .then(([xlsxBuffer, voteData]) => {
@@ -263,16 +279,21 @@
 
         const distribMap = {};
         dbRows.forEach(r => {
-            const title = String(r[1] ?? '').trim();
-            const diff  = String(r[2] ?? '').trim();
-            const opt1  = String(r[3] ?? '').trim() || 'OFF';
-            const opt2  = String(r[4] ?? '').trim() || 'OFF';
-            const opt3  = String(r[5] ?? '').trim() || 'OFF';
+            const title  = String(r[1] ?? '').trim();
+            const diff   = String(r[2] ?? '').trim();
+            const opt1   = String(r[3] ?? '').trim() || 'OFF';
+            const opt2   = String(r[4] ?? '').trim() || 'OFF';
+            const opt3   = String(r[5] ?? '').trim() || 'OFF';
+            const userId = String(r[7] ?? '').trim(); // H열: 투표자 ID
             if (!title || !diff) return;
             const key   = `${title}|${diff}`;
             const combo = `${opt1}|${opt2}|${opt3}`;
             if (!distribMap[key]) distribMap[key] = {};
             distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
+            // 투표자 ID 수집
+            const vmKey = `${key}|${combo}`;
+            if (!voteUserMap[vmKey]) voteUserMap[vmKey] = [];
+            if (userId) voteUserMap[vmKey].push(userId);
         });
 
         optionDistrib = {};
@@ -299,6 +320,18 @@
             note:  String(r[8] ?? '').trim(),
             extra: String(r[9] ?? '').trim(),
         }));
+
+        // Sheet3: Lv.x 인덱스 구성
+        const ws3   = workbook.Sheets[workbook.SheetNames[2]];
+        const rows3 = XLSX.utils.sheet_to_json(ws3, { header: 1 });
+        rows3.forEach(r => {
+            const lvx   = String(r[0] ?? '').trim();
+            const entry = String(r[1] ?? '').trim();
+            const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
+            if (m && lvx && !isNaN(parseFloat(lvx))) {
+                lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
+            }
+        });
     })
     .catch(err => console.error('로드 실패:', err));
 
@@ -330,6 +363,17 @@
         } else {
             suggestionList.style.display = 'none';
         }
+    }
+
+
+    function calcTrust(title, diff, opt1, opt2, opt3) {
+        const vmKey = `${title}|${diff}|${opt1}|${opt2}|${opt3}`;
+        const users = voteUserMap[vmKey] || [];
+        if (users.length === 0) return null;
+        const scores = users.map(u => trustData[u]).filter(s => s !== undefined && s !== null);
+        if (scores.length === 0) return null;
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        return Math.round(avg * 10) / 10;
     }
 
     function optColor(val) {
@@ -368,7 +412,8 @@
             distrib.forEach((d, i) => {
                 const line = document.createElement('div');
                 const prefix = document.createElement('span');
-                prefix.textContent = `[${i + 1}] `;
+                const trust = calcTrust(title, diff, d.opt1, d.opt2, d.opt3);
+                prefix.textContent = trust !== null ? `[${i + 1} : ${trust}%] ` : `[${i + 1}] `;
                 prefix.style.color = 'rgba(255,255,255,0.4)';
                 line.appendChild(prefix);
                 line.appendChild(makeSpan(d.opt1, d.opt2, d.opt3));
@@ -394,7 +439,7 @@
         if (results.length > 0) {
             const table = document.createElement('table');
             const thead = document.createElement('thead');
-            thead.innerHTML = `<tr><th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>Option</th><th>Note</th><th>Vote</th></tr>`;
+            thead.innerHTML = `<tr><th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>Lv.x</th><th>Option</th><th>Note</th><th>Vote</th></tr>`;
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
             results.forEach(row => {
@@ -402,6 +447,12 @@
                 ['ver','title','diff','lv'].forEach(key => {
                     const td = document.createElement('td'); td.textContent = row[key] || ''; tr.appendChild(td);
                 });
+                // Lv.x 컬럼
+                const lvxTd = document.createElement('td');
+                const lvxVal = getLvx(row.title, row.diff);
+                lvxTd.textContent = lvxVal;
+                lvxTd.style.color = lvxVal ? 'rgba(180,220,255,0.9)' : '#666';
+                tr.appendChild(lvxTd);
                 tr.appendChild(renderOptionCell(row.title, row.diff));
                 const noteTd = document.createElement('td'); noteTd.textContent = row.note || ''; tr.appendChild(noteTd);
                 const voteTd = document.createElement('td');
