@@ -315,8 +315,8 @@
         if (users.length === 0) return null;
         const scores = users.map(u => trustData[u]).filter(s => s !== undefined && s !== null);
         if (scores.length === 0) return null;
-        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-        return Math.round(avg * 10) / 10;
+        const sum = scores.reduce((a, b) => a + b, 0);
+        return Math.round(sum * 10) / 10;
     }
 
     function optColor(val) {
@@ -388,7 +388,7 @@
                 const line = document.createElement('div');
                 const prefix = document.createElement('span');
                 const trust = calcTrust(rowTitle, row.diff || '', d.opt1, d.opt2, d.opt3);
-                prefix.textContent = trust !== null ? `[${i + 1} : ${trust}%] ` : `[${i + 1}] `;
+                prefix.textContent = trust !== null ? `[${i + 1} : ${trust}pt] ` : `[${i + 1}] `;
                 prefix.style.color = 'rgba(255,255,255,0.4)';
                 line.appendChild(prefix);
                 line.appendChild(renderOptionSpan(d.opt1, d.opt2, d.opt3));
