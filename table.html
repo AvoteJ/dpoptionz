@@ -615,7 +615,6 @@
             });
 
         // Sheet3: Lv.x 인덱스 구성
-        const ws3   = wb.Sheets[wb.SheetNames[2]];
         const ws3 = wb.Sheets[wb.SheetNames[2]];
         const rows3 = XLSX.utils.sheet_to_json(ws3, { header: 1 });
         rows3.forEach(r => {
