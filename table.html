@@ -8,12 +8,25 @@
     <style>
         body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
         main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 16px; }
-        table { border-collapse: collapse; width: 95%; max-width: 1200px; background-color: rgba(255,255,255,0.05); }
-        th { background-color: #5c3333; padding: 12px; border: 1px solid #555; font-size: 11pt; }
-        td { padding: 10px; border: 1px solid #555; font-size: 10pt; text-align: center; }
-        th:nth-child(7), td:nth-child(7) { width: 1%; white-space: nowrap; padding: 3px !important; }   /* Note */
-        th:nth-child(8), td:nth-child(8) { width: 1%; white-space: nowrap; padding: 3px !important; }   /* Vote */
-        .vote-btn { display: inline-block; padding: 2px; background-color: transparent; border: none; color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 13pt; cursor: pointer; }
+        table { border-collapse: collapse; width: 95%; max-width: 980px; background-color: rgba(255,255,255,0.05); table-layout: fixed; }
+        th { background-color: #5c3333; padding: 8px 4px; border: 1px solid #555; font-size: 10pt; }
+        td { padding: 7px 4px; border: 1px solid #555; font-size: 9.5pt; text-align: center; word-break: break-word; overflow-wrap: anywhere; }
+        /* 열 너비 축소 */
+        th:nth-child(1), td:nth-child(1) { width: 6%;  white-space: nowrap; }   /* Ver. */
+        th:nth-child(2), td:nth-child(2) { width: 24%; }                          /* Title */
+        th:nth-child(3), td:nth-child(3) { width: 6%;  white-space: nowrap; }   /* Diff. */
+        th:nth-child(4), td:nth-child(4) { width: 4%;  white-space: nowrap; }   /* Lv */
+        th:nth-child(5), td:nth-child(5) { width: 5%;  white-space: nowrap; }   /* Lv.x */
+        th:nth-child(6), td:nth-child(6) { width: 30%; }                          /* Option */
+        th:nth-child(7), td:nth-child(7) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* Note */
+        th:nth-child(8), td:nth-child(8) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; }   /* Vote */
+        @media (max-aspect-ratio: 1/1) {
+            table { width: 99%; }
+            th { font-size: 8.5pt; padding: 6px 2px; }
+            td { font-size: 8.5pt; padding: 5px 2px; }
+            th:nth-child(6), td:nth-child(6) { width: 15%; }  /* Option 절반 축소 */
+        }
+        .vote-btn { display: inline-block; padding: 2px 4px; background-color: transparent; border: none; color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14pt; cursor: pointer; line-height: 1; }
         .vote-btn:hover { color: white; }
 
         /* 카테고리 필터 */
@@ -389,6 +402,7 @@
         const distrib = optionDistrib[key] || [];
 
         const portrait = isPortrait();
+        // 신뢰도(pt) 기준 내림차순 정렬
         const ranked = distrib.map(d => ({
             ...d, trust: calcTrust(rowTitle, row.diff || '', d.opt1, d.opt2, d.opt3)
         })).sort((a, b) => {
@@ -396,6 +410,7 @@
             if (tb !== ta) return tb - ta;
             return (b.count || 0) - (a.count || 0);
         });
+
         if (ranked.length === 0) {
             optTd.style.color = '#666';
             optTd.textContent = '-';
@@ -426,7 +441,7 @@
             const btn = document.createElement('a');
             btn.href = 'javascript:void(0)';
             btn.onclick = () => openVoteModal(rowTitle, row.diff || '');
-            btn.textContent = '✎';
+            btn.innerHTML = '✎';
             btn.title = 'Vote';
             btn.className = 'vote-btn';
             voteTd.appendChild(btn);
@@ -616,12 +631,14 @@
     }
     function makeOptSpan(o1, o2, o3) {
         const sp = document.createElement('span');
+        const portrait = (typeof isPortrait === 'function') ? isPortrait() : false;
+        const ab = v => portrait ? (OPT_ABBR[v] ?? v) : v;
         const parts = [];
         if (o1 !== 'OFF') { parts.push({v:o1}); parts.push({v:', ', p:true}); }
         parts.push({v:o2}); parts.push({v:'/', p:true}); parts.push({v:o3});
         parts.forEach(p => {
             if (p.p) { sp.appendChild(document.createTextNode(p.v)); }
-            else { const s = document.createElement('span'); s.textContent = p.v; s.style.color = optColor(p.v); sp.appendChild(s); }
+            else { const s = document.createElement('span'); s.textContent = ab(p.v); s.style.color = optColor(p.v); sp.appendChild(s); }
         });
         return sp;
     }
@@ -655,19 +672,19 @@
         optCell.innerHTML = '';
         const key = `${title}|${diff}`;
         const distrib = (typeof optionDistrib !== 'undefined') ? (optionDistrib[key] || []) : [];
-        const _portrait = isPortrait();
-        const _ranked = distrib.map(d => ({
+        const _portrait = (typeof isPortrait === 'function') ? isPortrait() : false;
+        const ranked = distrib.map(d => ({
             ...d, trust: calcTrust(title, diff, d.opt1, d.opt2, d.opt3)
         })).sort((a, b) => {
             const ta = a.trust ?? -1, tb = b.trust ?? -1;
             if (tb !== ta) return tb - ta;
             return (b.count || 0) - (a.count || 0);
         });
-        if (_ranked.length === 0) { optCell.style.color='#666'; optCell.textContent='-'; }
-        else if (_ranked.length === 1) { optCell.style.color=''; optCell.appendChild(makeOptSpan(_ranked[0].opt1, _ranked[0].opt2, _ranked[0].opt3)); }
+        if (ranked.length === 0) { optCell.style.color='#666'; optCell.textContent='-'; }
+        else if (ranked.length === 1) { optCell.style.color=''; optCell.appendChild(makeOptSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3)); }
         else {
             optCell.style.color='';
-            _ranked.forEach((d,i) => {
+            ranked.forEach((d,i) => {
                 const line = document.createElement('div');
                 const pre = document.createElement('span');
                 pre.textContent = d.trust !== null ? `[${i+1} : ${d.trust}pt] ` : `[${i+1}] `;
@@ -769,6 +786,20 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVoteModal(); });
     document.getElementById('vote-modal-overlay').addEventListener('click', function(e) {
         if (e.target === this) closeVoteModal();
+    });
+
+
+    // 창 크기 변경 시 표 다시 그리기 (가로/세로 모드 전환 반영)
+    let _resizeTimer = null;
+    let _lastPortrait = isPortrait();
+    window.addEventListener('resize', () => {
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(() => {
+            const nowPortrait = isPortrait();
+            if (nowPortrait === _lastPortrait) return;
+            _lastPortrait = nowPortrait;
+            if (allRows && allRows.length > 0) applyFilter();
+        }, 200);
     });
 
 </script>
