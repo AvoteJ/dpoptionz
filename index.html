@@ -600,10 +600,12 @@
 
         // 로그인 안된 경우
         const loginNotice = document.getElementById('vm-login-notice');
+        const voteWarning = document.getElementById('vm-vote-warning');
         const voteForm    = document.querySelector('.vm-vote-form');
         const songTable   = document.getElementById('vm-song-table');
         if (!session) {
             if (loginNotice) loginNotice.style.display = 'block';
+            if (voteWarning) voteWarning.style.display = 'none';
             if (btnEl) btnEl.style.display = 'none';
             ['vm-opt1','vm-opt2','vm-opt3','vm-voteNote'].forEach(id => {
                 const el = document.getElementById(id);
@@ -611,6 +613,7 @@
             });
         } else {
             if (loginNotice) loginNotice.style.display = 'none';
+            if (voteWarning) voteWarning.style.display = 'block';
             if (btnEl) btnEl.style.display = '';
             ['vm-opt1','vm-opt2','vm-opt3','vm-voteNote'].forEach(id => {
                 const el = document.getElementById(id);
@@ -775,7 +778,7 @@
                             <div id="vm-byteCount" style="font-size:9pt;color:rgba(255,255,255,0.3);text-align:right;margin-top:4px;">0 / 100 bytes</div>
                         </div>
                     </div>
-                    <div style="margin: 16px auto 0; width: 95%; max-width: 500px; padding: 10px 14px; background-color: rgba(255,200,50,0.08); border: 1px solid rgba(255,200,50,0.25); border-radius: 4px; font-size: 8.5pt; line-height: 1.75; color: rgba(255,255,255,0.55);">
+                    <div id="vm-vote-warning" style="display:none; margin: 16px auto 0; width: 95%; max-width: 500px; padding: 10px 14px; background-color: rgba(255,200,50,0.08); border: 1px solid rgba(255,200,50,0.25); border-radius: 4px; font-size: 8.5pt; line-height: 1.75; color: rgba(255,255,255,0.55);">
                         <div>Votes are not applied immediately and may take 3–7 days to reflect. Once submitted, a vote cannot be cancelled and comments cannot be edited.</div>
                         <div style="margin-top:6px;">투표는 즉시 적용되지 않으며, 반영에 3-7일 정도 소요됩니다. 한 번 투표된 데이터는 취소할 수 없으며, 코멘트 수정 또한 불가능합니다.</div>
                         <div style="margin-top:6px;">投票はすぐに反映されず、反映まで3〜7日ほどかかります。一度投票したデータはキャンセルできず、コメントの修正も不可能です。</div>
