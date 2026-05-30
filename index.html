@@ -30,21 +30,21 @@
         thead tr { background-color: #5c3333; }
         th, td { padding: 8px 6px; border: 1px solid #555; text-align: center; font-size: 9.5pt; word-break: break-word; overflow-wrap: anywhere; }
         /* 열 너비 축소 */
-        th:nth-child(1), td:nth-child(1) { width: 7%; }   /* Ver. */
-        th:nth-child(2), td:nth-child(2) { width: 26%; }  /* Title */
-        th:nth-child(3), td:nth-child(3) { width: 7%; }   /* Diff. */
-        th:nth-child(4), td:nth-child(4) { width: 7%; }   /* Lv */
-        th:nth-child(5), td:nth-child(5) { width: 30%; }  /* Option */
-        th:nth-child(6), td:nth-child(6) { width: 15%; }  /* Note */
-        th:nth-child(7), td:nth-child(7) { width: 8%; }   /* Vote */
+        th:nth-child(1), td:nth-child(1) { width: 7%;  white-space: nowrap; }   /* Ver. */
+        th:nth-child(2), td:nth-child(2) { width: 28%; }                          /* Title */
+        th:nth-child(3), td:nth-child(3) { width: 7%;  white-space: nowrap; }   /* Diff. */
+        th:nth-child(4), td:nth-child(4) { width: 5%;  white-space: nowrap; }   /* Lv */
+        th:nth-child(5), td:nth-child(5) { width: 32%; }                          /* Option */
+        th:nth-child(6), td:nth-child(6) { width: 4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* Note */
+        th:nth-child(7), td:nth-child(7) { width: 3%;  white-space: nowrap; }   /* Vote */
         /* 세로 모드: Title 줄바꿈 허용 */
         @media (max-aspect-ratio: 1/1) {
             th, td { font-size: 9pt; padding: 6px 3px; }
             #result-area { max-width: 98%; }
         }
 
-        .vote-btn { display: inline-block; padding: 4px 10px; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); color: rgba(255, 255, 255, 0.8); border-radius: 4px; text-decoration: none; font-size: 13pt; cursor: pointer; line-height: 1; }
-        .vote-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .vote-btn { display: inline-block; padding: 2px 4px; background-color: transparent; border: none; color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14pt; cursor: pointer; line-height: 1; }
+        .vote-btn:hover { color: white; }
 
         /* ── 공통 배너 ── */
         #site-banner {
@@ -486,7 +486,7 @@
                     const btn = document.createElement('a');
                     btn.href = 'javascript:void(0)';
                     btn.onclick = () => openVoteModal(row.title, row.diff || '');
-                    btn.innerHTML = '🗳'; btn.title = 'Vote'; btn.className = 'vote-btn';
+                    btn.innerHTML = '✎'; btn.title = 'Vote'; btn.className = 'vote-btn';
                     voteTd.appendChild(btn);
                 }
                 tr.appendChild(voteTd);
