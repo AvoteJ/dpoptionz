@@ -18,12 +18,13 @@
         th:nth-child(4), td:nth-child(4) { width: 4%;  white-space: nowrap; }   /* Lv */
         th:nth-child(5), td:nth-child(5) { width: 5%;  white-space: nowrap; }   /* Lv.x */
         th:nth-child(6), td:nth-child(6) { width: 30%; }                          /* Option */
-        th:nth-child(7), td:nth-child(7) { width: 4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* Note */
-        th:nth-child(8), td:nth-child(8) { width: 3%;  white-space: nowrap; }   /* Vote */
+        th:nth-child(7), td:nth-child(7) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* Note */
+        th:nth-child(8), td:nth-child(8) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; }   /* Vote */
         @media (max-aspect-ratio: 1/1) {
             table { width: 99%; }
             th { font-size: 8.5pt; padding: 6px 2px; }
             td { font-size: 8.5pt; padding: 5px 2px; }
+            th:nth-child(6), td:nth-child(6) { width: 15%; }  /* Option 절반 축소 */
         }
         .vote-btn { display: inline-block; padding: 2px 4px; background-color: transparent; border: none; color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14pt; cursor: pointer; line-height: 1; }
         .vote-btn:hover { color: white; }
