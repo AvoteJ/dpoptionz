@@ -208,11 +208,12 @@
         #vote-modal-body table { border-collapse: collapse; width: 100%; background-color: rgba(255,255,255,0.05); }
         #vote-modal-body th { background-color: #5c3333; padding: 10px; border: 1px solid #555; font-size: 10pt; text-align: center; }
         #vote-modal-body td { padding: 10px; border: 1px solid #555; font-size: 10pt; text-align: center; }
-        #vm-song-table { table-layout: fixed; }
+        #vm-song-table { table-layout: auto; }
         #vm-song-table th:nth-child(1), #vm-song-table td:nth-child(1) { width: auto; }             /* Title: 나머지 */
-        #vm-song-table th:nth-child(2), #vm-song-table td:nth-child(2) { width: 4%; white-space: nowrap; }  /* Diff. */
-        #vm-song-table th:nth-child(3), #vm-song-table td:nth-child(3) { width: 4%; white-space: nowrap; }  /* Lv */
-        #vm-song-table th:nth-child(4), #vm-song-table td:nth-child(4) { width: 5%; white-space: nowrap; }  /* Lv.x */
+        #vm-song-table th:nth-child(2), #vm-song-table td:nth-child(2) { min-width: 40px; white-space: nowrap; }  /* Diff. */
+        #vm-song-table th:nth-child(3), #vm-song-table td:nth-child(3) { min-width: 36px; white-space: nowrap; }  /* Lv */
+        #vm-song-table th:nth-child(4), #vm-song-table td:nth-child(4) { min-width: 48px; white-space: nowrap; }  /* Lv.x */
+        #vm-option-table th { min-width: 56px; white-space: nowrap; }  /* Option / Note 라벨 */
         .vm-vote-form { padding: 20px 0 0; }
         .vm-vote-form h2 { margin: 0 0 20px 0; font-size: 13pt; font-weight: normal; color: rgba(255,255,255,0.9); border-bottom: 1px solid #555; padding-bottom: 12px; }
         .vm-vote-row { display: flex; align-items: center; gap: 20px; margin-bottom: 14px; }
