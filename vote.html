@@ -182,7 +182,6 @@
     </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="dpopz_cache.js"></script>
 <script>
     if (new URLSearchParams(location.search).get('modal') === '1') {
         document.body.classList.add('modal-mode');
@@ -220,12 +219,13 @@
             return lvxIndex[`${title}|${code}`] || '';
         }
 
-        DPOPzCache.get(APPS_SCRIPT_URL)
-        .then(({ sheets, results, trust }) => {
-            trustData = trust;
+        fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer())
+        .then(xlsxBuffer => {
+            const wb = XLSX.read(xlsxBuffer, { type: 'array' });
 
             // Sheet3: Lv.x 인덱스
-            sheets.s3.forEach(r => {
+            const ws3 = wb.Sheets[wb.SheetNames[2]];
+            XLSX.utils.sheet_to_json(ws3, { header: 1 }).forEach(r => {
                 const lvx   = String(r[0] ?? '').trim();
                 const entry = String(r[1] ?? '').trim();
                 const m = entry.match(/^(.+?)\s*\[([ALH])\]$/);
@@ -235,8 +235,9 @@
             });
 
             // Sheet1: 옵션 분포 인덱스 구성 (Timestamp=OFF 제외)
+            const ws1 = wb.Sheets[wb.SheetNames[0]];
             const distribMap = {};
-            sheets.s1.slice(1)
+            XLSX.utils.sheet_to_json(ws1, { header: 1 }).slice(1)
                 .filter(r => String(r[0] ?? '').toUpperCase() !== 'OFF')
                 .forEach(r => {
                     const t    = String(r[1] ?? '').trim();
@@ -286,7 +287,8 @@
 
             // Sheet2: 배치표에서 곡 정보 조회 (URL의 title + diff 파라미터로 매칭)
             const urlDiff = params.get('diff') || '';
-            const sheet2Rows = sheets.s2.slice(1)
+            const ws2  = wb.Sheets[wb.SheetNames[1]];
+            const sheet2Rows = XLSX.utils.sheet_to_json(ws2, { header: 1 }).slice(1)
                 .filter(r => r[0] && String(r[0]).toUpperCase() !== 'OFF');
 
             // title 일치하는 행 전체 수집 (diff 파라미터 있으면 추가 필터)

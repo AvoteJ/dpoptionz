@@ -308,7 +308,6 @@
     </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="dpopz_cache.js"></script>
 <script src="config.js"></script>
 <script src="session.js"></script>
 <script src="nav.js"></script>
@@ -547,10 +546,16 @@
     // 데이터 로드: DPOPz_DATABASE.xlsx (Sheet1=DB, Sheet2=배치표, Sheet3=Lv.x) + 투표 집계
     setFilterEnabled(false);
 
-    DPOPzCache.get(APPS_SCRIPT_URL)
-    .then(({ sheets, results, trust }) => {
-        voteResults = results;
-        trustData   = trust;
+    Promise.all([
+        fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
+        fetch(`${APPS_SCRIPT_URL}?action=results`).then(r => r.json()).catch(() => ({ results: {} })),
+        fetch(`${APPS_SCRIPT_URL}?action=trust`).then(r => r.json()).catch(() => ({ status: 'error', trust: {} }))
+    ])
+    .then(([xlsxBuffer, voteData, trustRes]) => {
+        voteResults = voteData.results || {};
+        if (trustRes.status === 'success') trustData = trustRes.trust;
+
+        const wb = XLSX.read(xlsxBuffer, { type: 'array' });
 
         // Sheet1: 옵션 분포 인덱스 구성 (Timestamp=OFF 제외)
         const ws1    = wb.Sheets[wb.SheetNames[0]];
@@ -593,7 +598,8 @@
         const dbIndex = {};
 
         // Sheet2: 배치표 기준 (Version, Lv, Note, Extra)
-        allRows = sheets.s2.slice(1)
+        const ws2 = wb.Sheets[wb.SheetNames[1]];
+        allRows = XLSX.utils.sheet_to_json(ws2, { header: 1 }).slice(1)
             .filter(r => r[0] && String(r[0]).toUpperCase() !== 'OFF')
             .map(r => {
                 const title = String(r[2] ?? '').trim();
@@ -610,7 +616,8 @@
 
         // Sheet3: Lv.x 인덱스 구성
         const ws3   = wb.Sheets[wb.SheetNames[2]];
-        const rows3 = sheets.s3;
+        const ws3 = wb.Sheets[wb.SheetNames[2]];
+        const rows3 = XLSX.utils.sheet_to_json(ws3, { header: 1 });
         rows3.forEach(r => {
             const lvx   = String(r[0] ?? '').trim();
             const entry = String(r[1] ?? '').trim();
