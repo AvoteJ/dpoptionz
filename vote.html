@@ -14,6 +14,12 @@
         table { border-collapse: collapse; width: 95%; max-width: 1200px; background-color: rgba(255,255,255,0.05); }
         th { background-color: #5c3333; padding: 12px; border: 1px solid #555; font-size: 11pt; }
         td { padding: 10px; border: 1px solid #555; font-size: 10pt; text-align: center; }
+        th:nth-child(1), td:nth-child(1) { width: 7%; white-space: nowrap; }   /* Ver. */
+        th:nth-child(2), td:nth-child(2) { width: 30%; }                        /* Title */
+        th:nth-child(3), td:nth-child(3) { width: 6%; white-space: nowrap; }   /* Diff. */
+        th:nth-child(4), td:nth-child(4) { width: 5%; white-space: nowrap; }   /* Lv */
+        th:nth-child(5), td:nth-child(5) { width: 5%; white-space: nowrap; }   /* Lv.x */
+        th:nth-child(6), td:nth-child(6) { width: 0.6em; min-width: 0.6em; max-width: 0.6em; white-space: nowrap; overflow: hidden; padding: 1px !important; text-align: center; }  /* Note */
 
         /* 투표 폼 */
         .vote-form {
@@ -178,15 +184,70 @@
         <!-- JS로 동적 생성 -->
     </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+    // 로그인 상태 확인하여 경고 메시지 표시
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+        if (session) {
+            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
+            document.getElementById('warn-msg').style.display = 'block';
+            document.getElementById('warn-ko').style.display = 'block';
+        }
+    });
+
+</script>
 <script>
     if (new URLSearchParams(location.search).get('modal') === '1') {
         document.body.classList.add('modal-mode');
     }
+
+    // 로그인 상태 확인하여 경고 메시지 표시
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+        if (session) {
+            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
+            document.getElementById('warn-msg').style.display = 'block';
+            document.getElementById('warn-ko').style.display = 'block';
+        }
+    });
+
 </script>
-<script src="config.js"></script>
-<script src="session.js"></script>
-<script src="nav.js"></script>
+<script src="config.js">
+    // 로그인 상태 확인하여 경고 메시지 표시
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+        if (session) {
+            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
+            document.getElementById('warn-msg').style.display = 'block';
+            document.getElementById('warn-ko').style.display = 'block';
+        }
+    });
+
+</script>
+<script src="session.js">
+    // 로그인 상태 확인하여 경고 메시지 표시
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+        if (session) {
+            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
+            document.getElementById('warn-msg').style.display = 'block';
+            document.getElementById('warn-ko').style.display = 'block';
+        }
+    });
+
+</script>
+<script src="nav.js">
+    // 로그인 상태 확인하여 경고 메시지 표시
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+        if (session) {
+            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
+            document.getElementById('warn-msg').style.display = 'block';
+            document.getElementById('warn-ko').style.display = 'block';
+        }
+    });
+
+</script>
 <script>
     // 로그인 세션 확인 → 없으면 login.html로 이동 후 실행 중단
     (function() {
@@ -342,7 +403,6 @@
                                 <th>Diff.</th>
                                 <th>Lv</th>
                                 <th>Lv.x</th>
-                                <th>Option</th>
                                 <th>Note</th>
                             </tr>
                         </thead>
@@ -352,12 +412,16 @@
                                 <td>${row.title || ''}</td>
                                 <td>${row.diff  || ''}</td>
                                 <td>${row.lv    || ''}</td>
-                                <td>${getLvx(row.title || '', row.diff || '')}</td>
-                                <td id="option-cell" style="text-align:left; line-height:1.8;"></td>
+                                <td style="color:rgba(180,220,255,0.9);">${getLvx(row.title || '', row.diff || '')}</td>
                                 <td>${row.note  || ''}</td>
                             </tr>
                         </tbody>
                     </table>
+
+                    <div style="margin-top:20px; padding:16px; background-color:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:6px;">
+                        <div style="font-size:10pt; color:rgba(255,255,255,0.5); margin-bottom:8px;">Option</div>
+                        <div id="option-cell" style="text-align:left; line-height:1.8; font-size:11pt;"></div>
+                    </div>
 
                     <div class="vote-form">
                         <h2>Vote</h2>
@@ -399,6 +463,12 @@
                                     oninput="updateByteCount(this)"></textarea>
                                 <div id="byteCount" style="font-size:9pt; color:rgba(255,255,255,0.3); text-align:right; margin-top:4px;">0 / 100 bytes</div>
                             </div>
+                        </div>
+
+                        <div id="warn-msg" style="display:none; margin-top:20px; padding:12px; background-color:rgba(255,100,100,0.15); border:1px solid rgba(255,100,100,0.3); border-radius:4px; font-size:9.5pt; line-height:1.6; color:rgba(255,255,255,0.85);">
+                            <div id="warn-ko" style="display:none; margin-bottom:8px;">⚠️ 투표는 즉시 적용되지 않으며, 반영에 3-7일 정도 소요됩니다. 한 번 투표된 데이터는 취소할 수 없으며, 코멘트 수정 또한 불가능합니다.</div>
+                            <div id="warn-ja" style="display:none; margin-bottom:8px;">⚠️ 投票は即座に反映されず、反映に3～7日程度要します。一度投票されたデータはキャンセルできず、コメント修正も不可能です。</div>
+                            <div id="warn-en" style="display:none;">⚠️ Votes are not applied immediately and take 3-7 days to reflect. Once voted data cannot be cancelled, and comment editing is also not possible.</div>
                         </div>
 
                         <button class="submit-btn" id="submitBtn" onclick="submitVote()">Submit</button>
@@ -550,6 +620,17 @@
             _lastPortrait = nowPortrait;
             if (typeof window._voteRenderOption === 'function') window._voteRenderOption();
         }, 200);
+    });
+
+
+    // 로그인 상태 확인하여 경고 메시지 표시
+    window.addEventListener('DOMContentLoaded', () => {
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+        if (session) {
+            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
+            document.getElementById('warn-msg').style.display = 'block';
+            document.getElementById('warn-ko').style.display = 'block';
+        }
     });
 
 </script>
