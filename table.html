@@ -17,14 +17,14 @@
         th:nth-child(3), td:nth-child(3) { width: 6%;  white-space: nowrap; }   /* Diff. */
         th:nth-child(4), td:nth-child(4) { width: 4%;  white-space: nowrap; }   /* Lv */
         th:nth-child(5), td:nth-child(5) { width: 5%;  white-space: nowrap; }   /* Lv.x */
-        th:nth-child(6), td:nth-child(6) { width: 30%; }                          /* Option */
-        th:nth-child(7), td:nth-child(7) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* Note */
-        th:nth-child(8), td:nth-child(8) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; }   /* Vote */
+        th:nth-child(6), td:nth-child(6) { width: 34%; }                          /* Option */
+        th:nth-child(7), td:nth-child(7) { width: 2em; min-width: 2em; max-width: 2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px !important; }  /* Note */
+        th:nth-child(8), td:nth-child(8) { width: 2em; min-width: 2em; max-width: 2em; white-space: nowrap; padding: 2px !important; }   /* Vote */
         @media (max-aspect-ratio: 1/1) {
             table { width: 99%; }
             th { font-size: 8.5pt; padding: 6px 2px; }
             td { font-size: 8.5pt; padding: 5px 2px; }
-            th:nth-child(6), td:nth-child(6) { width: 15%; }  /* Option 절반 축소 */
+            th:nth-child(6), td:nth-child(6) { width: 17%; }  /* Option 세로모드 */
         }
         .vote-btn { display: inline-block; padding: 2px 4px; background-color: transparent; border: none; color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14pt; cursor: pointer; line-height: 1; }
         .vote-btn:hover { color: white; }
@@ -428,7 +428,6 @@
                 prefix.textContent = d.trust !== null ? `[${i + 1} : ${d.trust}pt] ` : `[${i + 1}] `;
                 prefix.style.color = 'rgba(255,255,255,0.4)';
                 line.appendChild(prefix);
-                if (portrait) line.appendChild(document.createElement('br'));
                 line.appendChild(renderOptionSpan(d.opt1, d.opt2, d.opt3));
                 optTd.appendChild(line);
             });
@@ -697,7 +696,6 @@
                 pre.textContent = d.trust !== null ? `[${i+1} : ${d.trust}pt] ` : `[${i+1}] `;
                 pre.style.color='rgba(255,255,255,0.4)';
                 line.appendChild(pre);
-                if (_portrait) line.appendChild(document.createElement('br'));
                 line.appendChild(makeOptSpan(d.opt1,d.opt2,d.opt3));
                 optCell.appendChild(line);
             });
