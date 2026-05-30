@@ -207,14 +207,31 @@
     } else {
         // DPOPz DATABASE.xlsx Sheet3(Lv.x) + Apps Script 병렬 로드
         let lvxIndex = {};
+        let trustData = {};
+        let voteUserMap = {};
+        const OPT_ABBR = { 'FLIP':'F', 'OFF':'x', 'MIRROR':'M', 'RANDOM':'R', 'R-RANDOM':'RR', 'S-RANDOM':'SR' };
+        function isPortrait() { return window.innerHeight > window.innerWidth; }
         function getLvx(title, diff) {
             const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
             const code = diffMap[diff] || diff.charAt(0).toUpperCase();
             return lvxIndex[`${title}|${code}`] || '';
         }
+        function calcTrust(title, diff, opt1, opt2, opt3) {
+            const vmKey = `${title}|${diff}|${opt1}|${opt2}|${opt3}`;
+            const users = voteUserMap[vmKey] || [];
+            if (users.length === 0) return null;
+            const scores = users.map(u => trustData[u]).filter(s => s !== undefined && s !== null);
+            if (scores.length === 0) return null;
+            const sum = scores.reduce((a, b) => a + b, 0);
+            return Math.round(sum * 10) / 10;
+        }
 
-        fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer())
-        .then(xlsxBuffer => {
+        Promise.all([
+            fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
+            fetch(`${APPS_SCRIPT_URL}?action=trust`).then(r => r.json()).catch(() => ({ status: 'error', trust: {} }))
+        ])
+        .then(([xlsxBuffer, trustRes]) => {
+            if (trustRes.status === 'success') trustData = trustRes.trust;
             const wb = XLSX.read(xlsxBuffer, { type: 'array' });
 
             // Sheet3: Lv.x 인덱스
@@ -239,11 +256,15 @@
                     const opt1 = String(r[3] ?? '').trim() || 'OFF';
                     const opt2 = String(r[4] ?? '').trim() || 'OFF';
                     const opt3 = String(r[5] ?? '').trim() || 'OFF';
+                    const userId = String(r[7] ?? '').trim() || String(r[0] ?? '').trim();
                     if (!t || !d) return;
                     const key   = `${t}|${d}`;
                     const combo = `${opt1}|${opt2}|${opt3}`;
                     if (!distribMap[key]) distribMap[key] = {};
                     distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
+                    const vmKey = `${key}|${combo}`;
+                    if (!voteUserMap[vmKey]) voteUserMap[vmKey] = [];
+                    if (userId) voteUserMap[vmKey].push(userId);
                 });
 
             const optionDistrib = {};
@@ -267,6 +288,8 @@
 
             function makeOptionSpan(opt1, opt2, opt3) {
                 const span = document.createElement('span');
+                const portrait = isPortrait();
+                const ab = v => portrait ? (OPT_ABBR[v] ?? v) : v;
                 const parts = [];
                 if (opt1 !== 'OFF') { parts.push({ val: opt1 }); parts.push({ val: ', ', plain: true }); }
                 parts.push({ val: opt2 });
@@ -274,7 +297,7 @@
                 parts.push({ val: opt3 });
                 parts.forEach(p => {
                     if (p.plain) { span.appendChild(document.createTextNode(p.val)); }
-                    else { const s = document.createElement('span'); s.textContent = p.val; s.style.color = optColor(p.val); span.appendChild(s); }
+                    else { const s = document.createElement('span'); s.textContent = ab(p.val); s.style.color = optColor(p.val); span.appendChild(s); }
                 });
                 return span;
             }
@@ -314,9 +337,9 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Version</th>
+                                <th>Ver.</th>
                                 <th>Title</th>
-                                <th>Difficulty</th>
+                                <th>Diff.</th>
                                 <th>Lv</th>
                                 <th>Lv.x</th>
                                 <th>Option</th>
@@ -389,26 +412,38 @@
                     if (el) updateSelectColor(el);
                 });
                 const optCell = document.getElementById('option-cell');
-                const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
-                if (distrib.length === 0) {
-                    optCell.style.color = '#666'; optCell.textContent = '-';
-                } else if (distrib.length === 1) {
-                    optCell.appendChild(makeOptionSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
-                } else {
-                    distrib.forEach((d, i) => {
-                        const line = document.createElement('div');
-                        const prefix = document.createElement('span');
-                        prefix.textContent = `[${i + 1}] `;
-                        prefix.style.color = 'rgba(255,255,255,0.4)';
-                        line.appendChild(prefix);
-                        line.appendChild(makeOptionSpan(d.opt1, d.opt2, d.opt3));
-                        const pct = document.createElement('span');
-                        pct.textContent = ` (${d.pct}%)`;
-                        pct.style.color = 'rgba(255,255,255,0.35)';
-                        line.appendChild(pct);
-                        optCell.appendChild(line);
+                window._voteRenderOption = function() {
+                    const optCell = document.getElementById('option-cell');
+                    if (!optCell) return;
+                    optCell.innerHTML = '';
+                    optCell.style.color = '';
+                    const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
+                    const portrait = isPortrait();
+                    const ranked = distrib.map(d => ({
+                        ...d, trust: calcTrust(row.title, row.diff, d.opt1, d.opt2, d.opt3)
+                    })).sort((a, b) => {
+                        const ta = a.trust ?? -1, tb = b.trust ?? -1;
+                        if (tb !== ta) return tb - ta;
+                        return (b.count || 0) - (a.count || 0);
                     });
-                }
+                    if (ranked.length === 0) {
+                        optCell.style.color = '#666'; optCell.textContent = '-';
+                    } else if (ranked.length === 1) {
+                        optCell.appendChild(makeOptionSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3));
+                    } else {
+                        ranked.forEach((d, i) => {
+                            const line = document.createElement('div');
+                            const prefix = document.createElement('span');
+                            prefix.textContent = d.trust !== null ? `[${i + 1} : ${d.trust}pt] ` : `[${i + 1}] `;
+                            prefix.style.color = 'rgba(255,255,255,0.4)';
+                            line.appendChild(prefix);
+                            if (portrait) line.appendChild(document.createElement('br'));
+                            line.appendChild(makeOptionSpan(d.opt1, d.opt2, d.opt3));
+                            optCell.appendChild(line);
+                        });
+                    }
+                };
+                window._voteRenderOption();
         })
         .catch(err => {
                 console.error('Data load failed:', err);
@@ -502,6 +537,21 @@
             btn.textContent = 'Submit';
         });
     }
+
+    // 창 크기 변경 시 옵션 셀 다시 그리기 (가로/세로 모드 전환 반영)
+    let _resizeTimer = null;
+    const _isPortrait = () => window.innerHeight > window.innerWidth;
+    let _lastPortrait = _isPortrait();
+    window.addEventListener('resize', () => {
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(() => {
+            const nowPortrait = _isPortrait();
+            if (nowPortrait === _lastPortrait) return;
+            _lastPortrait = nowPortrait;
+            if (typeof window._voteRenderOption === 'function') window._voteRenderOption();
+        }, 200);
+    });
+
 </script>
 
 

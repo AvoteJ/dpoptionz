@@ -25,12 +25,25 @@
         .suggestions li { padding: 10px 20px; cursor: pointer; border-bottom: 1px solid #555; }
         .suggestions li:hover { background: #555; }
 
-        #result-area { width: 90%; max-width: 900px; margin-top: 40px; }
-        table { border-collapse: collapse; width: 100%; background-color: rgba(255, 255, 255, 0.05); }
+        #result-area { width: 90%; max-width: 760px; margin-top: 40px; }
+        table { border-collapse: collapse; width: 100%; background-color: rgba(255, 255, 255, 0.05); table-layout: fixed; }
         thead tr { background-color: #5c3333; }
-        th, td { padding: 12px; border: 1px solid #555; text-align: center; font-size: 10pt; }
+        th, td { padding: 8px 6px; border: 1px solid #555; text-align: center; font-size: 9.5pt; word-break: break-word; overflow-wrap: anywhere; }
+        /* 열 너비 축소 */
+        th:nth-child(1), td:nth-child(1) { width: 7%; }   /* Ver. */
+        th:nth-child(2), td:nth-child(2) { width: 26%; }  /* Title */
+        th:nth-child(3), td:nth-child(3) { width: 7%; }   /* Diff. */
+        th:nth-child(4), td:nth-child(4) { width: 7%; }   /* Lv */
+        th:nth-child(5), td:nth-child(5) { width: 30%; }  /* Option */
+        th:nth-child(6), td:nth-child(6) { width: 15%; }  /* Note */
+        th:nth-child(7), td:nth-child(7) { width: 8%; }   /* Vote */
+        /* 세로 모드: Title 줄바꿈 허용 */
+        @media (max-aspect-ratio: 1/1) {
+            th, td { font-size: 9pt; padding: 6px 3px; }
+            #result-area { max-width: 98%; }
+        }
 
-        .vote-btn { display: inline-block; padding: 4px 14px; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); color: rgba(255, 255, 255, 0.8); border-radius: 4px; text-decoration: none; font-size: 10pt; cursor: pointer; }
+        .vote-btn { display: inline-block; padding: 4px 10px; background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.5); color: rgba(255, 255, 255, 0.8); border-radius: 4px; text-decoration: none; font-size: 13pt; cursor: pointer; line-height: 1; }
         .vote-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
 
         /* ── 공통 배너 ── */
@@ -371,6 +384,10 @@
         }
     }
 
+    // 옵션 축약 매핑 (세로 모드용)
+    const OPT_ABBR = { 'FLIP':'F', 'OFF':'x', 'MIRROR':'M', 'RANDOM':'R', 'R-RANDOM':'RR', 'S-RANDOM':'SR' };
+    function isPortrait() { return window.innerHeight > window.innerWidth; }
+
     function calcTrust(title, diff, opt1, opt2, opt3) {
         const vmKey = `${title}|${diff}|${opt1}|${opt2}|${opt3}`;
         const users = voteUserMap[vmKey] || [];
@@ -394,9 +411,11 @@
         td.style.textAlign = 'left';
         td.style.lineHeight = '1.8';
         const distrib = optionDistrib[`${title}|${diff}`] || [];
+        const portrait = isPortrait();
 
         function makeSpan(opt1, opt2, opt3) {
             const span = document.createElement('span');
+            const ab = v => portrait ? (OPT_ABBR[v] ?? v) : v;
             const parts = [];
             if (opt1 !== 'OFF') { parts.push({ val: opt1 }); parts.push({ val: ', ', plain: true }); }
             parts.push({ val: opt2 });
@@ -404,28 +423,36 @@
             parts.push({ val: opt3 });
             parts.forEach(p => {
                 if (p.plain) { span.appendChild(document.createTextNode(p.val)); }
-                else { const s = document.createElement('span'); s.textContent = p.val; s.style.color = optColor(p.val); span.appendChild(s); }
+                else { const s = document.createElement('span'); s.textContent = ab(p.val); s.style.color = optColor(p.val); span.appendChild(s); }
             });
             return span;
         }
 
-        if (distrib.length === 0) {
+        // 신뢰도(pt) 기준 내림차순 정렬
+        const ranked = distrib.map(d => ({
+            ...d, trust: calcTrust(title, diff, d.opt1, d.opt2, d.opt3)
+        })).sort((a, b) => {
+            const ta = a.trust ?? -1, tb = b.trust ?? -1;
+            if (tb !== ta) return tb - ta;
+            return (b.count || 0) - (a.count || 0);
+        });
+
+        if (ranked.length === 0) {
             td.style.color = '#666'; td.textContent = '-';
-        } else if (distrib.length === 1) {
-            td.appendChild(makeSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
+        } else if (ranked.length === 1) {
+            td.appendChild(makeSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3));
         } else {
-            distrib.forEach((d, i) => {
+            ranked.forEach((d, i) => {
                 const line = document.createElement('div');
                 const prefix = document.createElement('span');
-                const trust = calcTrust(title, diff, d.opt1, d.opt2, d.opt3);
-                prefix.textContent = trust !== null ? `[${i + 1} : ${trust}pt] ` : `[${i + 1}] `;
+                prefix.textContent = d.trust !== null ? `[${i + 1} : ${d.trust}pt] ` : `[${i + 1}] `;
                 prefix.style.color = 'rgba(255,255,255,0.4)';
                 line.appendChild(prefix);
+                if (portrait) {
+                    // 세로 모드: 대괄호 다음 줄에 옵션값
+                    line.appendChild(document.createElement('br'));
+                }
                 line.appendChild(makeSpan(d.opt1, d.opt2, d.opt3));
-                const pct = document.createElement('span');
-                pct.textContent = ` (${d.pct}%)`;
-                pct.style.color = 'rgba(255,255,255,0.35)';
-                line.appendChild(pct);
                 td.appendChild(line);
             });
         }
@@ -444,7 +471,7 @@
         if (results.length > 0) {
             const table = document.createElement('table');
             const thead = document.createElement('thead');
-            thead.innerHTML = `<tr><th>Version</th><th>Title</th><th>Difficulty</th><th>Lv</th><th>Option</th><th>Note</th><th>Vote</th></tr>`;
+            thead.innerHTML = `<tr><th>Ver.</th><th>Title</th><th>Diff.</th><th>Lv</th><th>Option</th><th>Note</th><th>Vote</th></tr>`;
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
             results.forEach(row => {
@@ -459,7 +486,7 @@
                     const btn = document.createElement('a');
                     btn.href = 'javascript:void(0)';
                     btn.onclick = () => openVoteModal(row.title, row.diff || '');
-                    btn.textContent = 'Vote'; btn.className = 'vote-btn';
+                    btn.innerHTML = '🗳'; btn.title = 'Vote'; btn.className = 'vote-btn';
                     voteTd.appendChild(btn);
                 }
                 tr.appendChild(voteTd);
@@ -485,12 +512,14 @@
     }
     function makeOptSpan(o1, o2, o3) {
         const sp = document.createElement('span');
+        const portrait = (typeof isPortrait === 'function') ? isPortrait() : false;
+        const ab = v => portrait ? (OPT_ABBR[v] ?? v) : v;
         const parts = [];
         if (o1 !== 'OFF') { parts.push({v:o1}); parts.push({v:', ', p:true}); }
         parts.push({v:o2}); parts.push({v:'/', p:true}); parts.push({v:o3});
         parts.forEach(p => {
             if (p.p) { sp.appendChild(document.createTextNode(p.v)); }
-            else { const s = document.createElement('span'); s.textContent = p.v; s.style.color = optColor(p.v); sp.appendChild(s); }
+            else { const s = document.createElement('span'); s.textContent = ab(p.v); s.style.color = optColor(p.v); sp.appendChild(s); }
         });
         return sp;
     }
@@ -524,16 +553,27 @@
         optCell.innerHTML = '';
         const key = `${title}|${diff}`;
         const distrib = (typeof optionDistrib !== 'undefined') ? (optionDistrib[key] || []) : [];
-        if (distrib.length === 0) { optCell.style.color='#666'; optCell.textContent='-'; }
-        else if (distrib.length === 1) { optCell.style.color=''; optCell.appendChild(makeOptSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3)); }
+        const _portrait = (typeof isPortrait === 'function') ? isPortrait() : false;
+        const ranked = distrib.map(d => ({
+            ...d, trust: calcTrust(title, diff, d.opt1, d.opt2, d.opt3)
+        })).sort((a, b) => {
+            const ta = a.trust ?? -1, tb = b.trust ?? -1;
+            if (tb !== ta) return tb - ta;
+            return (b.count || 0) - (a.count || 0);
+        });
+        if (ranked.length === 0) { optCell.style.color='#666'; optCell.textContent='-'; }
+        else if (ranked.length === 1) { optCell.style.color=''; optCell.appendChild(makeOptSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3)); }
         else {
             optCell.style.color='';
-            distrib.forEach((d,i) => {
+            ranked.forEach((d,i) => {
                 const line = document.createElement('div');
-                const pre = document.createElement('span'); pre.textContent=`[${i+1}] `; pre.style.color='rgba(255,255,255,0.4)';
-                line.appendChild(pre); line.appendChild(makeOptSpan(d.opt1,d.opt2,d.opt3));
-                const pct = document.createElement('span'); pct.textContent=` (${d.pct}%)`; pct.style.color='rgba(255,255,255,0.35)';
-                line.appendChild(pct); optCell.appendChild(line);
+                const pre = document.createElement('span');
+                pre.textContent = d.trust !== null ? `[${i+1} : ${d.trust}pt] ` : `[${i+1}] `;
+                pre.style.color='rgba(255,255,255,0.4)';
+                line.appendChild(pre);
+                if (_portrait) line.appendChild(document.createElement('br'));
+                line.appendChild(makeOptSpan(d.opt1,d.opt2,d.opt3));
+                optCell.appendChild(line);
             });
         }
 
@@ -627,6 +667,24 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVoteModal(); });
     document.getElementById('vote-modal-overlay').addEventListener('click', function(e) {
         if (e.target === this) closeVoteModal();
+    });
+
+
+    // 창 크기 변경 시 표 다시 그리기 (가로/세로 모드 전환 반영)
+    let _resizeTimer = null;
+    let _lastPortrait = isPortrait();
+    window.addEventListener('resize', () => {
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(() => {
+            const nowPortrait = isPortrait();
+            if (nowPortrait === _lastPortrait) return;
+            _lastPortrait = nowPortrait;
+            // 검색 결과가 표시 중이면 다시 렌더링
+            const ra = document.getElementById('result-area');
+            if (ra && ra.querySelector('table') && input.value.trim()) {
+                performSearch();
+            }
+        }, 200);
     });
 
 </script>
