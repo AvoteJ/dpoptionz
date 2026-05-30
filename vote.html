@@ -14,12 +14,10 @@
         table { border-collapse: collapse; width: 95%; max-width: 1200px; background-color: rgba(255,255,255,0.05); }
         th { background-color: #5c3333; padding: 12px; border: 1px solid #555; font-size: 11pt; }
         td { padding: 10px; border: 1px solid #555; font-size: 10pt; text-align: center; }
-        th:nth-child(1), td:nth-child(1) { width: 7%; white-space: nowrap; }   /* Ver. */
-        th:nth-child(2), td:nth-child(2) { width: 30%; }                        /* Title */
-        th:nth-child(3), td:nth-child(3) { width: 6%; white-space: nowrap; }   /* Diff. */
-        th:nth-child(4), td:nth-child(4) { width: 5%; white-space: nowrap; }   /* Lv */
-        th:nth-child(5), td:nth-child(5) { width: 5%; white-space: nowrap; }   /* Lv.x */
-        th:nth-child(6), td:nth-child(6) { width: 0.6em; min-width: 0.6em; max-width: 0.6em; white-space: nowrap; overflow: hidden; padding: 1px !important; text-align: center; }  /* Note */
+        th:nth-child(3), td:nth-child(3) { width: 1%; white-space: nowrap; }   /* Diff. */
+        th:nth-child(4), td:nth-child(4) { width: 1%; white-space: nowrap; }   /* Lv */
+        th:nth-child(5), td:nth-child(5) { width: 1%; white-space: nowrap; }   /* Lv.x */
+        th:nth-child(6), td:nth-child(6) { width: 1%; white-space: nowrap; }   /* Note */
 
         /* 투표 폼 */
         .vote-form {
@@ -184,74 +182,26 @@
         <!-- JS로 동적 생성 -->
     </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
-    // 로그인 상태 확인하여 경고 메시지 표시
-    window.addEventListener('DOMContentLoaded', () => {
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-        if (session) {
-            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
-            document.getElementById('warn-msg').style.display = 'block';
-            document.getElementById('warn-ko').style.display = 'block';
-        }
-    });
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     if (new URLSearchParams(location.search).get('modal') === '1') {
         document.body.classList.add('modal-mode');
     }
-
-    // 로그인 상태 확인하여 경고 메시지 표시
-    window.addEventListener('DOMContentLoaded', () => {
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-        if (session) {
-            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
-            document.getElementById('warn-msg').style.display = 'block';
-            document.getElementById('warn-ko').style.display = 'block';
-        }
-    });
-
 </script>
-<script src="config.js">
-    // 로그인 상태 확인하여 경고 메시지 표시
-    window.addEventListener('DOMContentLoaded', () => {
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-        if (session) {
-            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
-            document.getElementById('warn-msg').style.display = 'block';
-            document.getElementById('warn-ko').style.display = 'block';
-        }
-    });
-
-</script>
-<script src="session.js">
-    // 로그인 상태 확인하여 경고 메시지 표시
-    window.addEventListener('DOMContentLoaded', () => {
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-        if (session) {
-            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
-            document.getElementById('warn-msg').style.display = 'block';
-            document.getElementById('warn-ko').style.display = 'block';
-        }
-    });
-
-</script>
-<script src="nav.js">
-    // 로그인 상태 확인하여 경고 메시지 표시
-    window.addEventListener('DOMContentLoaded', () => {
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-        if (session) {
-            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
-            document.getElementById('warn-msg').style.display = 'block';
-            document.getElementById('warn-ko').style.display = 'block';
-        }
-    });
-
-</script>
+<script src="config.js"></script>
+<script src="session.js"></script>
+<script src="nav.js"></script>
 <script>
     // 로그인 세션 확인 → 없으면 login.html로 이동 후 실행 중단
     (function() {
         const s = checkSession();
+        if (s) {
+            // 로그인 상태: 경고 메시지는 투표 폼이 렌더된 뒤 표시 (renderDone 이벤트)
+            document.addEventListener('votePageReady', () => {
+                const w = document.getElementById('vote-warning');
+                if (w) w.style.display = 'block';
+            });
+        }
         if (!s) {
             sessionStorage.setItem('dpopz_returnTo', location.href);
             location.href = 'login.html';
@@ -268,31 +218,14 @@
     } else {
         // DPOPz DATABASE.xlsx Sheet3(Lv.x) + Apps Script 병렬 로드
         let lvxIndex = {};
-        let trustData = {};
-        let voteUserMap = {};
-        const OPT_ABBR = { 'FLIP':'F', 'OFF':'x', 'MIRROR':'M', 'RANDOM':'R', 'R-RANDOM':'RR', 'S-RANDOM':'SR' };
-        function isPortrait() { return window.innerHeight > window.innerWidth; }
         function getLvx(title, diff) {
             const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
             const code = diffMap[diff] || diff.charAt(0).toUpperCase();
             return lvxIndex[`${title}|${code}`] || '';
         }
-        function calcTrust(title, diff, opt1, opt2, opt3) {
-            const vmKey = `${title}|${diff}|${opt1}|${opt2}|${opt3}`;
-            const users = voteUserMap[vmKey] || [];
-            if (users.length === 0) return null;
-            const scores = users.map(u => trustData[u]).filter(s => s !== undefined && s !== null);
-            if (scores.length === 0) return null;
-            const sum = scores.reduce((a, b) => a + b, 0);
-            return Math.round(sum * 10) / 10;
-        }
 
-        Promise.all([
-            fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer()),
-            fetch(`${APPS_SCRIPT_URL}?action=trust`).then(r => r.json()).catch(() => ({ status: 'error', trust: {} }))
-        ])
-        .then(([xlsxBuffer, trustRes]) => {
-            if (trustRes.status === 'success') trustData = trustRes.trust;
+        fetch('DPOPz_DATABASE.xlsx').then(r => r.arrayBuffer())
+        .then(xlsxBuffer => {
             const wb = XLSX.read(xlsxBuffer, { type: 'array' });
 
             // Sheet3: Lv.x 인덱스
@@ -317,15 +250,11 @@
                     const opt1 = String(r[3] ?? '').trim() || 'OFF';
                     const opt2 = String(r[4] ?? '').trim() || 'OFF';
                     const opt3 = String(r[5] ?? '').trim() || 'OFF';
-                    const userId = String(r[7] ?? '').trim() || String(r[0] ?? '').trim();
                     if (!t || !d) return;
                     const key   = `${t}|${d}`;
                     const combo = `${opt1}|${opt2}|${opt3}`;
                     if (!distribMap[key]) distribMap[key] = {};
                     distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
-                    const vmKey = `${key}|${combo}`;
-                    if (!voteUserMap[vmKey]) voteUserMap[vmKey] = [];
-                    if (userId) voteUserMap[vmKey].push(userId);
                 });
 
             const optionDistrib = {};
@@ -349,8 +278,6 @@
 
             function makeOptionSpan(opt1, opt2, opt3) {
                 const span = document.createElement('span');
-                const portrait = isPortrait();
-                const ab = v => portrait ? (OPT_ABBR[v] ?? v) : v;
                 const parts = [];
                 if (opt1 !== 'OFF') { parts.push({ val: opt1 }); parts.push({ val: ', ', plain: true }); }
                 parts.push({ val: opt2 });
@@ -358,7 +285,7 @@
                 parts.push({ val: opt3 });
                 parts.forEach(p => {
                     if (p.plain) { span.appendChild(document.createTextNode(p.val)); }
-                    else { const s = document.createElement('span'); s.textContent = ab(p.val); s.style.color = optColor(p.val); span.appendChild(s); }
+                    else { const s = document.createElement('span'); s.textContent = p.val; s.style.color = optColor(p.val); span.appendChild(s); }
                 });
                 return span;
             }
@@ -418,9 +345,9 @@
                         </tbody>
                     </table>
 
-                    <div style="margin-top:20px; padding:16px; background-color:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:6px;">
-                        <div style="font-size:10pt; color:rgba(255,255,255,0.5); margin-bottom:8px;">Option</div>
-                        <div id="option-cell" style="text-align:left; line-height:1.8; font-size:11pt;"></div>
+                    <div id="option-section" style="width:95%; max-width:1200px; margin: 20px 0; padding: 16px 20px; background-color: rgba(255,255,255,0.05); border: 1px solid #555; border-radius: 4px; box-sizing: border-box;">
+                        <div style="font-size: 9.5pt; color: rgba(255,255,255,0.45); margin-bottom: 10px; letter-spacing: 0.04em;">CURRENT OPTION</div>
+                        <div id="option-cell" style="text-align:left; line-height:1.8; font-size: 10.5pt;"></div>
                     </div>
 
                     <div class="vote-form">
@@ -465,16 +392,18 @@
                             </div>
                         </div>
 
-                        <div id="warn-msg" style="display:none; margin-top:20px; padding:12px; background-color:rgba(255,100,100,0.15); border:1px solid rgba(255,100,100,0.3); border-radius:4px; font-size:9.5pt; line-height:1.6; color:rgba(255,255,255,0.85);">
-                            <div id="warn-ko" style="display:none; margin-bottom:8px;">⚠️ 투표는 즉시 적용되지 않으며, 반영에 3-7일 정도 소요됩니다. 한 번 투표된 데이터는 취소할 수 없으며, 코멘트 수정 또한 불가능합니다.</div>
-                            <div id="warn-ja" style="display:none; margin-bottom:8px;">⚠️ 投票は即座に反映されず、反映に3～7日程度要します。一度投票されたデータはキャンセルできず、コメント修正も不可能です。</div>
-                            <div id="warn-en" style="display:none;">⚠️ Votes are not applied immediately and take 3-7 days to reflect. Once voted data cannot be cancelled, and comment editing is also not possible.</div>
+                        <div id="vote-warning" style="display:none; margin: 20px 0 16px; padding: 12px 16px; background-color: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.35); border-radius: 4px; font-size: 9pt; line-height: 1.7; color: rgba(255,255,255,0.8);">
+                            <div style="margin-bottom:6px;">⚠️ 투표는 즉시 적용되지 않으며, 반영에 3-7일 정도 소요됩니다. 한 번 투표된 데이터는 취소할 수 없으며, 코멘트 수정 또한 불가능합니다.</div>
+                            <div style="margin-bottom:6px;">⚠️ Votes are not applied immediately and may take 3-7 days to reflect. Once submitted, votes cannot be cancelled and comments cannot be edited.</div>
+                            <div>⚠️ 投票は即座に反映されず、反映には3〜7日程度かかります。一度投票されたデータはキャンセルできず、コメントの修正も不可能です。</div>
                         </div>
-
                         <button class="submit-btn" id="submitBtn" onclick="submitVote()">Submit</button>
                         <div class="result-msg" id="resultMsg"></div>
                     </div>
                 `;
+
+                // 페이지 준비 완료 이벤트 (경고 메시지 표시용)
+                document.dispatchEvent(new Event('votePageReady'));
 
                 // Initialize select colors
                 ['opt1','opt2','opt3'].forEach(id => {
@@ -482,38 +411,26 @@
                     if (el) updateSelectColor(el);
                 });
                 const optCell = document.getElementById('option-cell');
-                window._voteRenderOption = function() {
-                    const optCell = document.getElementById('option-cell');
-                    if (!optCell) return;
-                    optCell.innerHTML = '';
-                    optCell.style.color = '';
-                    const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
-                    const portrait = isPortrait();
-                    const ranked = distrib.map(d => ({
-                        ...d, trust: calcTrust(row.title, row.diff, d.opt1, d.opt2, d.opt3)
-                    })).sort((a, b) => {
-                        const ta = a.trust ?? -1, tb = b.trust ?? -1;
-                        if (tb !== ta) return tb - ta;
-                        return (b.count || 0) - (a.count || 0);
+                const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
+                if (distrib.length === 0) {
+                    optCell.style.color = '#666'; optCell.textContent = '-';
+                } else if (distrib.length === 1) {
+                    optCell.appendChild(makeOptionSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
+                } else {
+                    distrib.forEach((d, i) => {
+                        const line = document.createElement('div');
+                        const prefix = document.createElement('span');
+                        prefix.textContent = `[${i + 1}] `;
+                        prefix.style.color = 'rgba(255,255,255,0.4)';
+                        line.appendChild(prefix);
+                        line.appendChild(makeOptionSpan(d.opt1, d.opt2, d.opt3));
+                        const pct = document.createElement('span');
+                        pct.textContent = ` (${d.pct}%)`;
+                        pct.style.color = 'rgba(255,255,255,0.35)';
+                        line.appendChild(pct);
+                        optCell.appendChild(line);
                     });
-                    if (ranked.length === 0) {
-                        optCell.style.color = '#666'; optCell.textContent = '-';
-                    } else if (ranked.length === 1) {
-                        optCell.appendChild(makeOptionSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3));
-                    } else {
-                        ranked.forEach((d, i) => {
-                            const line = document.createElement('div');
-                            const prefix = document.createElement('span');
-                            prefix.textContent = d.trust !== null ? `[${i + 1} : ${d.trust}pt] ` : `[${i + 1}] `;
-                            prefix.style.color = 'rgba(255,255,255,0.4)';
-                            line.appendChild(prefix);
-                            if (portrait) line.appendChild(document.createElement('br'));
-                            line.appendChild(makeOptionSpan(d.opt1, d.opt2, d.opt3));
-                            optCell.appendChild(line);
-                        });
-                    }
-                };
-                window._voteRenderOption();
+                }
         })
         .catch(err => {
                 console.error('Data load failed:', err);
@@ -607,32 +524,6 @@
             btn.textContent = 'Submit';
         });
     }
-
-    // 창 크기 변경 시 옵션 셀 다시 그리기 (가로/세로 모드 전환 반영)
-    let _resizeTimer = null;
-    const _isPortrait = () => window.innerHeight > window.innerWidth;
-    let _lastPortrait = _isPortrait();
-    window.addEventListener('resize', () => {
-        clearTimeout(_resizeTimer);
-        _resizeTimer = setTimeout(() => {
-            const nowPortrait = _isPortrait();
-            if (nowPortrait === _lastPortrait) return;
-            _lastPortrait = nowPortrait;
-            if (typeof window._voteRenderOption === 'function') window._voteRenderOption();
-        }, 200);
-    });
-
-
-    // 로그인 상태 확인하여 경고 메시지 표시
-    window.addEventListener('DOMContentLoaded', () => {
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-        if (session) {
-            // 한국어 우선 표시 (사용자의 브라우저 언어에 따라 조정 가능)
-            document.getElementById('warn-msg').style.display = 'block';
-            document.getElementById('warn-ko').style.display = 'block';
-        }
-    });
-
 </script>
 
 
