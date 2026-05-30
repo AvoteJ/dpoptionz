@@ -420,7 +420,16 @@
             optTd.style.color = '#666';
             optTd.textContent = '-';
         } else if (ranked.length === 1) {
-            optTd.appendChild(renderOptionSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3));
+            const line = document.createElement('div');
+            const d = ranked[0];
+            if (d.trust !== null) {
+                const prefix = document.createElement('span');
+                prefix.textContent = `[1 : ${d.trust}pt] `;
+                prefix.style.color = 'rgba(255,255,255,0.4)';
+                line.appendChild(prefix);
+            }
+            line.appendChild(renderOptionSpan(d.opt1, d.opt2, d.opt3));
+            optTd.appendChild(line);
         } else {
             ranked.forEach((d, i) => {
                 const line = document.createElement('div');
@@ -687,7 +696,19 @@
             return (b.count || 0) - (a.count || 0);
         });
         if (ranked.length === 0) { optCell.style.color='#666'; optCell.textContent='-'; }
-        else if (ranked.length === 1) { optCell.style.color=''; optCell.appendChild(makeOptSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3)); }
+        else if (ranked.length === 1) {
+            optCell.style.color='';
+            const _line = document.createElement('div');
+            const _d = ranked[0];
+            if (_d.trust !== null) {
+                const _pre = document.createElement('span');
+                _pre.textContent = `[1 : ${_d.trust}pt] `;
+                _pre.style.color = 'rgba(255,255,255,0.4)';
+                _line.appendChild(_pre);
+            }
+            _line.appendChild(makeOptSpan(_d.opt1, _d.opt2, _d.opt3));
+            optCell.appendChild(_line);
+        }
         else {
             optCell.style.color='';
             ranked.forEach((d,i) => {

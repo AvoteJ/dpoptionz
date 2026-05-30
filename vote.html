@@ -412,8 +412,6 @@
                 const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
                 if (distrib.length === 0) {
                     optCell.style.color = '#666'; optCell.textContent = '-';
-                } else if (distrib.length === 1) {
-                    optCell.appendChild(makeOptionSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
                 } else {
                     distrib.forEach((d, i) => {
                         const line = document.createElement('div');
