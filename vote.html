@@ -17,7 +17,6 @@
         th:nth-child(3), td:nth-child(3) { width: 1%; white-space: nowrap; }   /* Diff. */
         th:nth-child(4), td:nth-child(4) { width: 1%; white-space: nowrap; }   /* Lv */
         th:nth-child(5), td:nth-child(5) { width: 1%; white-space: nowrap; }   /* Lv.x */
-        th:nth-child(6), td:nth-child(6) { width: 1%; white-space: nowrap; }   /* Note */
 
         /* 투표 폼 */
         .vote-form {
@@ -195,12 +194,6 @@
     // 로그인 세션 확인 → 없으면 login.html로 이동 후 실행 중단
     (function() {
         const s = checkSession();
-        if (s) {
-            document.addEventListener('votePageReady', () => {
-                const w = document.getElementById('vote-warning');
-                if (w) w.style.display = 'block';
-            });
-        }
         if (!s) {
             sessionStorage.setItem('dpopz_returnTo', location.href);
             location.href = 'login.html';
@@ -216,19 +209,7 @@
         main.innerHTML = '<p class="not-found">No song information found. <a href="table.html" style="color:rgba(255,255,255,0.6)">Back to Table</a></p>';
     } else {
         // DPOPz DATABASE.xlsx Sheet3(Lv.x) + Apps Script 병렬 로드
-        let lvxIndex  = {};
-        let trustData = {};
-        let voteUserMap = {};
-        const OPT_ABBR = { 'FLIP':'F', 'OFF':'x', 'MIRROR':'M', 'RANDOM':'R', 'R-RANDOM':'RR', 'S-RANDOM':'SR' };
-        function isPortrait() { return window.innerHeight > window.innerWidth; }
-        function calcTrust(title, diff, opt1, opt2, opt3) {
-            const key = `${title}|${diff}|${opt1}|${opt2}|${opt3}`;
-            const users = voteUserMap[key] || [];
-            if (users.length === 0) return null;
-            const scores = users.map(u => trustData[u]).filter(s => s !== undefined && s !== null);
-            if (scores.length === 0) return null;
-            return Math.round(scores.reduce((a, b) => a + b, 0) * 10) / 10;
-        }
+        let lvxIndex = {};
         function getLvx(title, diff) {
             const diffMap = { 'ANOTHER': 'A', 'LEGGENDARIA': 'L', 'HYPER': 'H' };
             const code = diffMap[diff] || diff.charAt(0).toUpperCase();
@@ -261,16 +242,11 @@
                     const opt1 = String(r[3] ?? '').trim() || 'OFF';
                     const opt2 = String(r[4] ?? '').trim() || 'OFF';
                     const opt3 = String(r[5] ?? '').trim() || 'OFF';
-                    const uid  = String(r[7] ?? r[0] ?? '').trim();
                     if (!t || !d) return;
                     const key   = `${t}|${d}`;
                     const combo = `${opt1}|${opt2}|${opt3}`;
                     if (!distribMap[key]) distribMap[key] = {};
                     distribMap[key][combo] = (distribMap[key][combo] || 0) + 1;
-                    // voteUserMap: 옵션별 투표자 목록
-                    const vmKey = `${t}|${d}|${opt1}|${opt2}|${opt3}`;
-                    if (!voteUserMap[vmKey]) voteUserMap[vmKey] = [];
-                    if (uid) voteUserMap[vmKey].push(uid);
                 });
 
             const optionDistrib = {};
@@ -294,8 +270,6 @@
 
             function makeOptionSpan(opt1, opt2, opt3) {
                 const span = document.createElement('span');
-                const portrait = isPortrait();
-                const ab = v => portrait ? (OPT_ABBR[v] ?? v) : v;
                 const parts = [];
                 if (opt1 !== 'OFF') { parts.push({ val: opt1 }); parts.push({ val: ', ', plain: true }); }
                 parts.push({ val: opt2 });
@@ -303,19 +277,10 @@
                 parts.push({ val: opt3 });
                 parts.forEach(p => {
                     if (p.plain) { span.appendChild(document.createTextNode(p.val)); }
-                    else { const s = document.createElement('span'); s.textContent = ab(p.val); s.style.color = optColor(p.val); span.appendChild(s); }
+                    else { const s = document.createElement('span'); s.textContent = p.val; s.style.color = optColor(p.val); span.appendChild(s); }
                 });
                 return span;
             }
-
-            // trustData: Apps Script에서 실시간 로드
-            fetch(`${APPS_SCRIPT_URL}?action=trust`)
-                .then(r => r.json())
-                .then(tData => {
-                    if (tData && tData.users) {
-                        tData.users.forEach(u => { if (u.id && u.score !== undefined) trustData[u.id] = u.score; });
-                    }
-                }).catch(() => {});
 
             // Sheet2: 배치표에서 곡 정보 조회 (URL의 title + diff 파라미터로 매칭)
             const urlDiff = params.get('diff') || '';
@@ -352,7 +317,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Ver.</th>
+                                <th>Version</th>
                                 <th>Title</th>
                                 <th>Diff.</th>
                                 <th>Lv</th>
@@ -366,16 +331,20 @@
                                 <td>${row.title || ''}</td>
                                 <td>${row.diff  || ''}</td>
                                 <td>${row.lv    || ''}</td>
-                                <td style="color:rgba(180,220,255,0.9);">${getLvx(row.title || '', row.diff || '')}</td>
+                                <td>${getLvx(row.title || '', row.diff || '')}</td>
                                 <td>${row.note  || ''}</td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <div style="width:95%; max-width:1200px; margin: 16px 0; padding: 14px 18px; background-color: rgba(255,255,255,0.05); border: 1px solid #555; border-radius: 4px; box-sizing: border-box;">
-                        <div style="font-size: 9.5pt; color: rgba(255,255,255,0.45); margin-bottom: 8px; letter-spacing: 0.04em;">CURRENT OPTION</div>
-                        <div id="option-cell" style="text-align:left; line-height:1.8; font-size: 10.5pt;"></div>
-                    </div>
+                    <table id="option-table" style="margin-top: 12px;">
+                        <tbody>
+                            <tr>
+                                <th style="width:1%; white-space:nowrap; text-align:center;">Option</th>
+                                <td id="option-cell" style="text-align:left; line-height:1.8;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
 
                     <div class="vote-form">
                         <h2>Vote</h2>
@@ -419,17 +388,10 @@
                             </div>
                         </div>
 
-                        <div id="vote-warning" style="display:none; margin: 20px 0 16px; padding: 12px 16px; background-color: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.35); border-radius: 4px; font-size: 9pt; line-height: 1.8; color: rgba(255,255,255,0.8);">
-                            <div style="margin-bottom:6px;">⚠️ 투표는 즉시 적용되지 않으며, 반영에 3-7일 정도 소요됩니다. 한 번 투표된 데이터는 취소할 수 없으며, 코멘트 수정 또한 불가능합니다.</div>
-                            <div style="margin-bottom:6px;">⚠️ Votes are not applied immediately and may take 3-7 days to reflect. Once submitted, votes cannot be cancelled and comments cannot be edited.</div>
-                            <div>⚠️ 投票は即座に反映されず、反映には3〜7日程度かかります。一度投票されたデータはキャンセルできず、コメントの修正も不可能です。</div>
-                        </div>
                         <button class="submit-btn" id="submitBtn" onclick="submitVote()">Submit</button>
                         <div class="result-msg" id="resultMsg"></div>
                     </div>
                 `;
-
-                document.dispatchEvent(new Event('votePageReady'));
 
                 // Initialize select colors
                 ['opt1','opt2','opt3'].forEach(id => {
@@ -438,27 +400,22 @@
                 });
                 const optCell = document.getElementById('option-cell');
                 const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
-                const portrait = isPortrait();
-                const ranked = distrib.map(d => ({
-                    ...d, trust: calcTrust(row.title, row.diff, d.opt1, d.opt2, d.opt3)
-                })).sort((a, b) => {
-                    const ta = a.trust ?? -1, tb = b.trust ?? -1;
-                    if (tb !== ta) return tb - ta;
-                    return (b.count || 0) - (a.count || 0);
-                });
-                if (ranked.length === 0) {
+                if (distrib.length === 0) {
                     optCell.style.color = '#666'; optCell.textContent = '-';
-                } else if (ranked.length === 1) {
-                    optCell.appendChild(makeOptionSpan(ranked[0].opt1, ranked[0].opt2, ranked[0].opt3));
+                } else if (distrib.length === 1) {
+                    optCell.appendChild(makeOptionSpan(distrib[0].opt1, distrib[0].opt2, distrib[0].opt3));
                 } else {
-                    ranked.forEach((d, i) => {
+                    distrib.forEach((d, i) => {
                         const line = document.createElement('div');
                         const prefix = document.createElement('span');
-                        prefix.textContent = d.trust !== null ? `[${i + 1} : ${d.trust}pt] ` : `[${i + 1}] `;
+                        prefix.textContent = `[${i + 1}] `;
                         prefix.style.color = 'rgba(255,255,255,0.4)';
                         line.appendChild(prefix);
-                        if (portrait) line.appendChild(document.createElement('br'));
                         line.appendChild(makeOptionSpan(d.opt1, d.opt2, d.opt3));
+                        const pct = document.createElement('span');
+                        pct.textContent = ` (${d.pct}%)`;
+                        pct.style.color = 'rgba(255,255,255,0.35)';
+                        line.appendChild(pct);
                         optCell.appendChild(line);
                     });
                 }
