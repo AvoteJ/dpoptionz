@@ -347,7 +347,7 @@
             diff:  String(r[3] ?? '').trim(),
             lv:    String(r[4] ?? '').trim(),
             note:  String(r[8] ?? '').trim(),
-            extra: String(r[9] ?? '').trim(),
+            extra: String(r[9] ?? '1').trim() || '1',
         }));
         const loadingEl = document.getElementById('data-loading');
         if (loadingEl) loadingEl.style.display = 'none';

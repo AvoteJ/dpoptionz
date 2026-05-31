@@ -632,7 +632,7 @@
                     diff:  diff,
                     lv:    String(r[4] ?? '').trim(),
                     note:  String(r[8] ?? '').trim(),
-                    extra: String(r[9] ?? '').trim(),
+                    extra: String(r[9] ?? '1').trim() || '1',
                 };
             });
 
