@@ -35,8 +35,7 @@
         th:nth-child(3), td:nth-child(3) { width: 7%;  white-space: nowrap; }   /* Diff. */
         th:nth-child(4), td:nth-child(4) { width: 5%;  white-space: nowrap; }   /* Lv */
         th:nth-child(5), td:nth-child(5) { width: 36%; }                          /* Option */
-        th:nth-child(6), td:nth-child(6) { width: 2em; min-width: 2em; max-width: 2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px !important; }  /* Note */
-        th:nth-child(7), td:nth-child(7) { width: 2em; min-width: 2em; max-width: 2em; white-space: nowrap; padding: 2px !important; }   /* Vote */
+        th:nth-child(6), td:nth-child(6) { width: 4em; min-width: 4em; max-width: 4em; white-space: nowrap; overflow: hidden; padding: 2px !important; text-align: center; }  /* Note+Vote */
         /* 세로 모드: Title 줄바꿈 허용 */
         @media (max-aspect-ratio: 1/1) {
             th, td { font-size: 9pt; padding: 6px 3px; }
@@ -489,7 +488,7 @@
         if (results.length > 0) {
             const table = document.createElement('table');
             const thead = document.createElement('thead');
-            thead.innerHTML = `<tr><th>Ver.</th><th>Title</th><th>Diff.</th><th>Lv</th><th>Option</th><th>Note</th><th>Vote</th></tr>`;
+            thead.innerHTML = `<tr><th>Ver.</th><th>Title</th><th>Diff.</th><th>Lv</th><th>Option</th><th style='line-height:1.4;'>Note<br>Vote</th></tr>`;
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
             results.forEach(row => {
@@ -498,16 +497,24 @@
                     const td = document.createElement('td'); td.textContent = row[key] || ''; tr.appendChild(td);
                 });
                 tr.appendChild(renderOptionCell(row.title, row.diff));
-                const noteTd = document.createElement('td'); noteTd.textContent = row.note || ''; tr.appendChild(noteTd);
-                const voteTd = document.createElement('td');
+                const noteVoteTd = document.createElement('td');
+                noteVoteTd.style.textAlign = 'center';
+                if (row.note) {
+                    const noteEl = document.createElement('div');
+                    noteEl.textContent = row.note;
+                    noteEl.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:8.5pt; color:rgba(255,255,255,0.6);';
+                    noteVoteTd.appendChild(noteEl);
+                }
                 if (row.extra) {
+                    const totalVotes = (optionDistrib[`${row.title}|${row.diff}`] || []).reduce((s, d) => s + (d.count || 0), 0);
                     const btn = document.createElement('a');
                     btn.href = 'javascript:void(0)';
                     btn.onclick = () => openVoteModal(row.title, row.diff || '');
-                    btn.innerHTML = '✎'; btn.title = 'Vote'; btn.className = 'vote-btn';
-                    voteTd.appendChild(btn);
+                    btn.className = 'vote-btn'; btn.title = 'Vote';
+                    btn.textContent = '✎' + String(totalVotes).padStart(2, '0');
+                    noteVoteTd.appendChild(btn);
                 }
-                tr.appendChild(voteTd);
+                tr.appendChild(noteVoteTd);
                 tbody.appendChild(tr);
             });
             table.appendChild(tbody);
