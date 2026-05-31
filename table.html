@@ -648,7 +648,12 @@
         });
 
         // VERSION 서브로우 동적 생성 (고유 ver 값 수집)
-        const verSet = [...new Set(allRows.map(r => String(r.ver || '').trim()).filter(Boolean))].sort();
+        const VER_ORDER = ['3rd','4th','5th','6th','7th','8th','9th','10th','RED','SKY','DD','GOLD','DJT','EMP','SIR','RA','LC','tri','SPA','PEN','cop','SINO','CAN','Root','HERO','BIS','Cast','RESI','EPO','Pink','SPS'];
+        const verAll = [...new Set(allRows.map(r => String(r.ver || '').trim()).filter(Boolean))];
+        const verSet = [
+            ...VER_ORDER.filter(v => verAll.includes(v)),
+            ...verAll.filter(v => !VER_ORDER.includes(v)).sort()
+        ];
         const verSubRow = document.getElementById('sub-VERSION');
         if (verSubRow) {
             verSubRow.innerHTML = verSet.map(v =>
