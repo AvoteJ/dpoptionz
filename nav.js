@@ -49,9 +49,59 @@ document.addEventListener('DOMContentLoaded', () => {
             navEl.appendChild(a);
         });
 
-        // How to use 링크
+        // ── 3. Player Bar (nav 아래, how2use 위) ──
+        const session = (typeof checkSession === 'function') ? checkSession() : null;
+
         const how2useWrap = document.getElementById('how2use-link');
         if (how2useWrap) {
+            // Player Bar 생성
+            const playerBar = document.createElement('div');
+            playerBar.id = 'player-bar';
+
+            if (session) {
+                // 로그인 상태: 진한 파란~하늘색 그라디언트
+                playerBar.style.cssText = [
+                    'background: linear-gradient(90deg, #1a3870, #4aabcf)',
+                    'color: white',
+                    'text-align: center',
+                    'padding: 5px 16px',
+                    'font-size: 10pt',
+                    'letter-spacing: 0.04em',
+                    'cursor: pointer',
+                    'user-select: none',
+                ].join(';');
+                playerBar.textContent = `Player,  ${session.id}`;
+                playerBar.title = 'Log Out';
+                playerBar.onclick = () => {
+                    if (confirm('Log out?')) {
+                        if (typeof clearSession === 'function') clearSession();
+                        location.href = 'login.html';
+                    }
+                };
+            } else if (current !== 'login.html' && current !== 'signup.html') {
+                // 비로그인 상태: 진한 분홍 배경
+                playerBar.style.cssText = [
+                    'background: #b5285a',
+                    'color: white',
+                    'text-align: center',
+                    'padding: 5px 16px',
+                    'font-size: 10pt',
+                    'letter-spacing: 0.04em',
+                    'cursor: pointer',
+                    'user-select: none',
+                ].join(';');
+                playerBar.textContent = 'Please Log-In here';
+                playerBar.onclick = () => {
+                    sessionStorage.setItem('dpopz_returnTo', location.href);
+                    location.href = 'login.html';
+                };
+            }
+
+            if (playerBar.textContent) {
+                how2useWrap.parentElement.insertBefore(playerBar, how2useWrap);
+            }
+
+            // How to use 링크
             const a = document.createElement('a');
             a.href        = 'how2use.html';
             a.textContent = 'How to use DPOPz?';
@@ -59,33 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
             a.onmouseover = () => { a.style.color = 'rgba(255,140,0,1)'; };
             a.onmouseout  = () => { a.style.color = 'rgba(255,165,0,0.9)'; };
             how2useWrap.appendChild(a);
-        }
-
-        // ── 3. Login / Logout 버튼 (nav 오른쪽 끝) ──
-        const session = (typeof checkSession === 'function') ? checkSession() : null;
-
-        if (session) {
-            const btn = document.createElement('button');
-            btn.textContent  = 'Log Out';
-            btn.className    = 'auth-corner-btn logout';
-            btn.style.position = 'absolute';
-            btn.style.right = '20px';
-            btn.onclick = () => {
-                if (typeof clearSession === 'function') clearSession();
-                location.href = 'login.html';
-            };
-            navEl.appendChild(btn);
-        } else if (current !== 'login.html' && current !== 'signup.html') {
-            const btn = document.createElement('button');
-            btn.textContent  = 'Log In';
-            btn.className    = 'auth-corner-btn login';
-            btn.style.position = 'absolute';
-            btn.style.right = '20px';
-            btn.onclick = () => {
-                sessionStorage.setItem('dpopz_returnTo', location.href);
-                location.href = 'login.html';
-            };
-            navEl.appendChild(btn);
         }
     }
 
