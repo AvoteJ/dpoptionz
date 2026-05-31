@@ -247,13 +247,8 @@
                 <button class="filter-btn active" data-cat="ALL">ALL</button>
                 <button class="filter-btn" data-cat="12" data-sub="true">☆12</button>
                 <button class="filter-btn" data-cat="11" data-sub="true">☆11</button>
-                <button class="filter-btn" data-cat="ABCD">A/B/C/D</button>
-                <button class="filter-btn" data-cat="EFGH">E/F/G/H</button>
-                <button class="filter-btn" data-cat="IJKL">I/J/K/L</button>
-                <button class="filter-btn" data-cat="MNOP">M/N/O/P</button>
-                <button class="filter-btn" data-cat="QRST">Q/R/S/T</button>
-                <button class="filter-btn" data-cat="UVWXYZ">U/V/W/X/Y/Z</button>
-                <button class="filter-btn" data-cat="OTHER">OTHER</button>
+                <button class="filter-btn" data-cat="ALPHABET" data-sub="true">ALPHABET</button>
+                <button class="filter-btn" data-cat="VERSION" data-sub="true">VERSION</button>
             </div>
             <!-- ☆12 서브메뉴 (Lv.x 기준) -->
             <div class="sub-row" id="sub-12">
@@ -267,6 +262,7 @@
                 <button class="sub-btn" data-sub-val="12.0">12.0</button>
                 <button class="sub-btn" data-sub-val="11.8">11.8</button>
                 <button class="sub-btn" data-sub-val="11.6">11.6</button>
+                <button class="sub-btn" data-sub-val="Unknown">Unknown</button>
             </div>
             <!-- ☆11 서브메뉴 (Lv.x 기준) -->
             <div class="sub-row" id="sub-11">
@@ -281,7 +277,20 @@
                 <button class="sub-btn" data-sub-val="10.5">10.5</button>
                 <button class="sub-btn" data-sub-val="10.2">10.2</button>
                 <button class="sub-btn" data-sub-val="10.0">10.0</button>
+                <button class="sub-btn" data-sub-val="Unknown">Unknown</button>
             </div>
+            <!-- ALPHABET 서브로우 -->
+            <div class="sub-row" id="sub-ALPHABET">
+                <button class="sub-btn" data-sub-val="ABCD">A/B/C/D</button>
+                <button class="sub-btn" data-sub-val="EFGH">E/F/G/H</button>
+                <button class="sub-btn" data-sub-val="IJKL">I/J/K/L</button>
+                <button class="sub-btn" data-sub-val="MNOP">M/N/O/P</button>
+                <button class="sub-btn" data-sub-val="QRST">Q/R/S/T</button>
+                <button class="sub-btn" data-sub-val="UVWXYZ">U/V/W/X/Y/Z</button>
+                <button class="sub-btn" data-sub-val="OTHER">OTHER</button>
+            </div>
+            <!-- VERSION 서브로우 (데이터 로드 후 동적 생성) -->
+            <div class="sub-row" id="sub-VERSION"></div>
         </div>
 
         <table>
@@ -487,16 +496,28 @@
 
             if (currentCat === '12') {
                 if (String(row.lv).trim() !== '12') return false;
-                return currentSub ? lvx === currentSub : true;
+                if (!currentSub) return true;
+                if (currentSub === 'Unknown') return !lvx;
+                return lvx === currentSub;
             }
             if (currentCat === '11') {
                 if (String(row.lv).trim() !== '11') return false;
-                return currentSub ? lvx === currentSub : true;
+                if (!currentSub) return true;
+                if (currentSub === 'Unknown') return !lvx;
+                return lvx === currentSub;
             }
 
-            if (ALPHA_MAP[currentCat]) return ALPHA_MAP[currentCat].includes(first);
+            if (currentCat === 'ALPHABET') {
+                if (!currentSub) return true;
+                if (currentSub === 'OTHER') return !ALL_ALPHA.includes(first);
+                if (ALPHA_MAP[currentSub]) return ALPHA_MAP[currentSub].includes(first);
+                return true;
+            }
 
-            if (currentCat === 'OTHER') return !ALL_ALPHA.includes(first);
+            if (currentCat === 'VERSION') {
+                if (!currentSub) return true;
+                return String(row.ver || '').trim() === currentSub;
+            }
 
             return true;
         }).forEach(row => tbody.appendChild(renderRow(row)));
@@ -625,6 +646,30 @@
                 lvxIndex[`${m[1].trim()}|${m[2]}`] = lvx;
             }
         });
+
+        // VERSION 서브로우 동적 생성 (고유 ver 값 수집)
+        const verSet = [...new Set(allRows.map(r => String(r.ver || '').trim()).filter(Boolean))].sort();
+        const verSubRow = document.getElementById('sub-VERSION');
+        if (verSubRow) {
+            verSubRow.innerHTML = verSet.map(v =>
+                `<button class="sub-btn" data-sub-val="${v}">${v}</button>`
+            ).join('');
+            // 동적 생성된 sub-btn에 이벤트 등록
+            verSubRow.querySelectorAll('.sub-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const val = btn.dataset.subVal;
+                    if (currentSub === val) {
+                        currentSub = null;
+                        btn.classList.remove('active');
+                        applyFilter(); return;
+                    }
+                    document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentSub = val;
+                    applyFilter();
+                });
+            });
+        }
 
         setFilterEnabled(true);
         applyFilter();
