@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (session) {
                 // 로그인 상태: 진한 파란~하늘색 그라디언트
                 playerBar.style.cssText = [
-                    'background: linear-gradient(90deg, #1a3870, #4aabcf)',
+                    'background: #1a3870',
                     'color: white',
                     'text-align: center',
                     'padding: 5px 16px',
@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     'letter-spacing: 0.04em',
                     'cursor: pointer',
                     'user-select: none',
+                    'display: block',
+                    'margin: 0 auto',
+                    'box-sizing: border-box',
                 ].join(';');
                 playerBar.textContent = `Player,  ${session.id}`;
                 playerBar.title = 'Log Out';
@@ -89,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     'letter-spacing: 0.04em',
                     'cursor: pointer',
                     'user-select: none',
+                    'display: block',
+                    'margin: 0 auto',
+                    'box-sizing: border-box',
                 ].join(';');
                 playerBar.textContent = 'Please Log-In here';
                 playerBar.onclick = () => {
@@ -99,6 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (playerBar.textContent) {
                 how2useWrap.parentElement.insertBefore(playerBar, how2useWrap);
+                // 탭 링크들의 실제 폭에 맞춤
+                requestAnimationFrame(() => {
+                    const links = navEl.querySelectorAll('.nav-link');
+                    if (links.length > 0) {
+                        const first = links[0].getBoundingClientRect();
+                        const last  = links[links.length - 1].getBoundingClientRect();
+                        playerBar.style.width = (last.right - first.left) + 'px';
+                    }
+                });
             }
 
             // How to use 링크
