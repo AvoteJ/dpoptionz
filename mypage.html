@@ -74,6 +74,26 @@
         .error   { color: rgba(255,100,100,0.7); text-align: center; padding: 30px; }
         .empty   { color: rgba(255,255,255,0.3); text-align: center; padding: 40px; font-size: 10.5pt; }
 
+        /* ── 네비게이션 ── */
+        header { width: 100%; padding: 20px 0; }
+        .nav-container { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%; padding: 0 20px; box-sizing: border-box; position: relative; }
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14pt;
+            font-family: inherit;
+        }
+        .nav-link:hover { background-color: rgba(255, 255, 255, 0.08); }
+        .nav-link-active {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.85);
+            color: white;
+        }
+
         footer { text-align: center; padding: 16px; font-size: 8pt; color: rgba(255,255,255,0.25); }
     </style>
 </head>
@@ -86,11 +106,6 @@
 </header>
 
 <main>
-    <div class="player-info" id="player-info" style="display:none;">
-        <span class="name" id="player-name"></span>
-        <button class="logout-btn" onclick="doLogout()">Log Out</button>
-    </div>
-
     <div class="section">
         <div class="section-title">
             VOTE LOG
@@ -113,14 +128,6 @@
     if (!session) {
         sessionStorage.setItem('dpopz_returnTo', location.href);
         location.href = 'login.html';
-    }
-
-    // ── Player Info 표시 ──
-    const playerInfo = document.getElementById('player-info');
-    const playerName = document.getElementById('player-name');
-    if (session) {
-        playerName.textContent = `Player,  ${session.id}`;
-        playerInfo.style.display = 'flex';
     }
 
     // ── 로그아웃 ──
