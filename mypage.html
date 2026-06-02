@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>My Page — DPOPz</title>
+    <style>
+        body { background-color: #333333; color: white; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 30px; padding-bottom: 60px; gap: 20px; }
+
+        .player-info {
+            width: 95%; max-width: 960px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #1a3870, #2a5298);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .player-info .name { font-size: 13pt; letter-spacing: 0.05em; }
+        .logout-btn {
+            padding: 6px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.8);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 9.5pt;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .section { width: 95%; max-width: 960px; box-sizing: border-box; }
+
+        .section-title {
+            font-size: 11pt;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .vote-count {
+            font-size: 9.5pt;
+            color: rgba(255,255,255,0.35);
+            float: right;
+        }
+
+        table { border-collapse: collapse; width: 100%; background: rgba(255,255,255,0.05); }
+        th { background: #5c3333; padding: 10px 8px; border: 1px solid #555; font-size: 9.5pt; text-align: center; white-space: nowrap; }
+        td { padding: 8px; border: 1px solid #444; font-size: 9.5pt; text-align: center; }
+
+        th:nth-child(1), td:nth-child(1) { width: 13%; white-space: nowrap; font-size: 8.5pt; }  /* Timestamp */
+        th:nth-child(2), td:nth-child(2) { text-align: left; }                                    /* Title */
+        th:nth-child(3), td:nth-child(3) { width: 1%; white-space: nowrap; }                      /* Diff. */
+        th:nth-child(4), td:nth-child(4) { width: 28%; text-align: left; }                        /* Option */
+        th:nth-child(5), td:nth-child(5) { width: 14%; text-align: left; font-size: 8.5pt; color: rgba(255,255,255,0.6); } /* Note */
+
+        @media (max-aspect-ratio: 1/1) {
+            th, td { font-size: 8pt; padding: 6px 4px; }
+            th:nth-child(1), td:nth-child(1) { font-size: 7pt; }
+        }
+
+        .opt-flip  { color: rgba(255,255,255,0.9); }
+        .opt-mirror{ color: rgba(150,220,150,1); }
+        .opt-random{ color: #FFA500; }
+        .opt-srandom{ color: rgba(255,60,60,0.85); }
+        .opt-rrandom{ color: #FFA500; }
+        .opt-off   { color: #808080; }
+
+        .loading { color: rgba(255,255,255,0.35); font-size: 12pt; letter-spacing: 2px; text-align: center; padding: 40px; }
+        .error   { color: rgba(255,100,100,0.7); text-align: center; padding: 30px; }
+        .empty   { color: rgba(255,255,255,0.3); text-align: center; padding: 40px; font-size: 10.5pt; }
+
+        footer { text-align: center; padding: 16px; font-size: 8pt; color: rgba(255,255,255,0.25); }
+    </style>
+</head>
+<body>
+
+<div id="site-banner"></div>
+<header>
+    <nav class="nav-container" id="site-nav"></nav>
+    <div id="how2use-link" style="text-align:center; padding: 4px 0 2px;"></div>
+</header>
+
+<main>
+    <div class="player-info" id="player-info" style="display:none;">
+        <span class="name" id="player-name"></span>
+        <button class="logout-btn" onclick="doLogout()">Log Out</button>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            VOTE LOG
+            <span class="vote-count" id="vote-count"></span>
+        </div>
+        <div id="log-area">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="config.js"></script>
+<script src="session.js"></script>
+<script src="nav.js"></script>
+<script>
+    // ── 세션 확인 ──
+    const session = checkSession();
+    if (!session) {
+        sessionStorage.setItem('dpopz_returnTo', location.href);
+        location.href = 'login.html';
+    }
+
+    // ── Player Info 표시 ──
+    const playerInfo = document.getElementById('player-info');
+    const playerName = document.getElementById('player-name');
+    if (session) {
+        playerName.textContent = `Player,  ${session.id}`;
+        playerInfo.style.display = 'flex';
+    }
+
+    // ── 로그아웃 ──
+    function doLogout() {
+        if (confirm('Log out?')) {
+            if (typeof clearSession === 'function') clearSession();
+            location.href = 'login.html';
+        }
+    }
+
+    // ── 옵션 색상 ──
+    function optColor(val) {
+        if (!val || val === 'OFF') return 'opt-off';
+        if (val === 'MIRROR')     return 'opt-mirror';
+        if (val === 'RANDOM')     return 'opt-random';
+        if (val === 'R-RANDOM')   return 'opt-rrandom';
+        if (val === 'S-RANDOM')   return 'opt-srandom';
+        return 'opt-flip';
+    }
+
+    function makeOptSpan(val) {
+        const s = document.createElement('span');
+        s.className = optColor(val);
+        s.textContent = val || 'OFF';
+        return s;
+    }
+
+    function makeOptionCell(opt1, opt2, opt3) {
+        const td = document.createElement('td');
+        td.style.textAlign = 'left';
+        const parts = [];
+        if (opt1 && opt1 !== 'OFF') {
+            parts.push(makeOptSpan(opt1));
+            const comma = document.createElement('span');
+            comma.textContent = ', ';
+            parts.push(comma);
+        }
+        parts.push(makeOptSpan(opt2));
+        const slash = document.createElement('span');
+        slash.textContent = '/';
+        parts.push(slash);
+        parts.push(makeOptSpan(opt3));
+        parts.forEach(p => td.appendChild(p));
+        return td;
+    }
+
+    // ── 투표 로그 로드 ──
+    function loadVoteLog() {
+        const logArea = document.getElementById('log-area');
+        fetch(`${APPS_SCRIPT_URL}?action=myVotes&userId=${encodeURIComponent(session.id)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    logArea.innerHTML = `<div class="error">데이터를 불러오지 못했습니다.</div>`;
+                    return;
+                }
+                const votes = data.votes || [];
+                document.getElementById('vote-count').textContent = `${votes.length} votes`;
+
+                if (votes.length === 0) {
+                    logArea.innerHTML = `<div class="empty">아직 투표한 기록이 없습니다.</div>`;
+                    return;
+                }
+
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                thead.innerHTML = `<tr><th>Timestamp</th><th>Title</th><th>Diff.</th><th>Option</th><th>Note</th></tr>`;
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                votes.forEach(v => {
+                    const tr = document.createElement('tr');
+
+                    // Timestamp
+                    const tsTd = document.createElement('td');
+                    tsTd.textContent = v.timestamp;
+                    tsTd.style.color = 'rgba(255,255,255,0.45)';
+                    tr.appendChild(tsTd);
+
+                    // Title
+                    const titleTd = document.createElement('td');
+                    titleTd.style.textAlign = 'left';
+                    titleTd.textContent = v.title;
+                    tr.appendChild(titleTd);
+
+                    // Diff.
+                    const diffTd = document.createElement('td');
+                    diffTd.textContent = v.diff;
+                    tr.appendChild(diffTd);
+
+                    // Option
+                    tr.appendChild(makeOptionCell(v.opt1, v.opt2, v.opt3));
+
+                    // Note
+                    const noteTd = document.createElement('td');
+                    noteTd.textContent = v.note;
+                    noteTd.style.color = 'rgba(255,255,255,0.5)';
+                    tr.appendChild(noteTd);
+
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                logArea.innerHTML = '';
+                logArea.appendChild(table);
+            })
+            .catch(() => {
+                logArea.innerHTML = `<div class="error">서버에 연결할 수 없습니다.</div>`;
+            });
+    }
+
+    if (session) loadVoteLog();
+</script>
+</body>
+</html>

@@ -74,13 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     'box-sizing: border-box',
                 ].join(';');
                 playerBar.textContent = `Player,  ${session.id}`;
-                playerBar.title = 'Log Out';
-                playerBar.onclick = () => {
-                    if (confirm('Log out?')) {
-                        if (typeof clearSession === 'function') clearSession();
-                        location.href = 'login.html';
-                    }
-                };
+                playerBar.title = 'My Page';
+                playerBar.onclick = () => { location.href = 'mypage.html'; };
             } else if (current !== 'login.html' && current !== 'signup.html') {
                 // 비로그인 상태: 진한 분홍 배경
                 playerBar.style.cssText = [
