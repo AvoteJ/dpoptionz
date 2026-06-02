@@ -236,8 +236,19 @@
 
             // Sheet1: 옵션 분포 인덱스 구성 (Timestamp=OFF 제외)
             const ws1 = wb.Sheets[wb.SheetNames[0]];
+            const s1rows = XLSX.utils.sheet_to_json(ws1, { header: 1 }).slice(1);
+
+            // 최신 타임스탬프 추출
+            const tsPattern = /^\d{4}\.\s*\d{2}\.\s*\d{2}\.\s*\d{2}:\d{2}:\d{2}$/;
+            let latestTs = '';
+            s1rows.forEach(r => {
+                const ts = String(r[0] ?? '').trim();
+                if (tsPattern.test(ts) && ts > latestTs) latestTs = ts;
+            });
+            if (latestTs) window.dpopzLastVote = latestTs;
+
             const distribMap = {};
-            XLSX.utils.sheet_to_json(ws1, { header: 1 }).slice(1)
+            s1rows
                 .filter(r => String(r[0] ?? '').toUpperCase() !== 'OFF')
                 .forEach(r => {
                     const t    = String(r[1] ?? '').trim();

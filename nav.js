@@ -124,6 +124,22 @@ document.addEventListener('DOMContentLoaded', () => {
             a.onmouseover = () => { a.style.color = 'rgba(255,140,0,1)'; };
             a.onmouseout  = () => { a.style.color = 'rgba(255,165,0,0.9)'; };
             how2useWrap.appendChild(a);
+
+            // 마지막 투표 반영일 (xlsx 로드 후 window.dpopzLastVote에 설정됨)
+            const lastVoteEl = document.createElement('span');
+            lastVoteEl.style.cssText = 'color:rgba(255,255,255,0.35); font-size:9pt; margin-left:12px;';
+            lastVoteEl.textContent = '';
+            how2useWrap.appendChild(lastVoteEl);
+            // xlsx 로드 완료 후 표시 (최대 10초 대기)
+            let _lvTick = 0;
+            const _lvTimer = setInterval(() => {
+                if (window.dpopzLastVote) {
+                    lastVoteEl.textContent = `Last vote reflected: ${window.dpopzLastVote}`;
+                    clearInterval(_lvTimer);
+                } else if (++_lvTick > 100) {
+                    clearInterval(_lvTimer);
+                }
+            }, 100);
         }
     }
 
