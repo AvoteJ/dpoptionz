@@ -5,7 +5,7 @@
 // =============================================
 
 // ── Apps Script URL ──────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAa4GynSmi-ObmKy6XDeHr_PnPRq73HZHIy704SuLxLZcNfH_oWE2xOjXVKEs5CrWM/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYqiOOcSDWgDxKz4SDR6xbmLIQiQL3LtyVO5Qn_X-PMsiS1Ci5jc6RxYJM97VIKI5N/exec';
 
 // ── 버전 정보 ───────────────────────────────
 const APP_VERSION = '26.06.02';
