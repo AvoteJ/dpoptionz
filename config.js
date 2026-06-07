@@ -8,7 +8,7 @@
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYqiOOcSDWgDxKz4SDR6xbmLIQiQL3LtyVO5Qn_X-PMsiS1Ci5jc6RxYJM97VIKI5N/exec';
 
 // ── 버전 정보 ───────────────────────────────
-const APP_VERSION = '26.06.02';
+const APP_VERSION = '26.06.07';
 
 // ── 상단 배너 설정 ────────────────────────────
 // BANNER_LABEL : 배너 왼쪽 라벨 (빈 문자열이면 라벨 숨김)
