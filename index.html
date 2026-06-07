@@ -264,6 +264,7 @@
     let tableData     = [];
     let voteResults   = {};
     let optionDistrib = {};
+    let noteMap = {};
     let trustData     = {}; // { userId: score }
     let voteUserMap   = {}; // { 'Title|Diff|combo': [userId, ...] }
 
@@ -321,6 +322,22 @@
             const vmKey = `${key}|${combo}`;
             if (!voteUserMap[vmKey]) voteUserMap[vmKey] = [];
             if (userId) voteUserMap[vmKey].push(userId);
+        });
+
+        // noteMap: Sheet1 G열(코멘트) + H열(UID) 수집
+        noteMap = {};
+        dbRows.forEach(r => {
+            const _t  = String(r[1] ?? '').trim();
+            const _d  = String(r[2] ?? '').trim();
+            const _o1 = String(r[3] ?? '').trim() || 'OFF';
+            const _o2 = String(r[4] ?? '').trim() || 'OFF';
+            const _o3 = String(r[5] ?? '').trim() || 'OFF';
+            const _n  = String(r[6] ?? '').trim();
+            const _u  = String(r[7] ?? '').trim();
+            if (!_n || !_t || !_d) return;
+            const _k = `${_t}|${_d}`;
+            if (!noteMap[_k]) noteMap[_k] = [];
+            noteMap[_k].push({ opt1: _o1, opt2: _o2, opt3: _o3, note: _n, uid: _u });
         });
 
         optionDistrib = {};
@@ -584,7 +601,33 @@
         document.getElementById('vm-lv').textContent  = rowData ? rowData.lv : '';
         document.getElementById('vm-lvx').textContent = (typeof getLvx === 'function') ? getLvx(title, diff) : '';
         const noteEl2 = document.getElementById('vm-note');
-        if (noteEl2) noteEl2.textContent = rowData ? (rowData.note || '') : '';
+        if (noteEl2) {
+            noteEl2.innerHTML = '';
+            const _comments = noteMap[`${title}|${diff}`] || [];
+            if (_comments.length === 0) {
+                noteEl2.style.color = 'rgba(255,255,255,0.3)';
+                noteEl2.textContent = '-';
+            } else {
+                noteEl2.style.color = '';
+                _comments.forEach(c => {
+                    const _line = document.createElement('div');
+                    _line.style.cssText = 'margin-bottom:4px; font-size:9pt; line-height:1.6;';
+                    const _label = document.createElement('span');
+                    const _parts = [];
+                    if (c.opt1 !== 'OFF') _parts.push(c.opt1);
+                    _parts.push(`${c.opt2}/${c.opt3}`);
+                    _label.textContent = `[${_parts.join(', ')}] `;
+                    _label.style.color = 'rgba(255,255,255,0.4)';
+                    const _text = document.createElement('span');
+                    const _anon = c.uid ? `(${c.uid[0]}***)` : '';
+                    _text.textContent = `${c.note} ${_anon}`;
+                    _text.style.color = 'rgba(255,255,255,0.8)';
+                    _line.appendChild(_label);
+                    _line.appendChild(_text);
+                    noteEl2.appendChild(_line);
+                });
+            }
+        }
 
         // Option 셀 업데이트
         const optCell = document.getElementById('vm-option');
