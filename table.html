@@ -365,6 +365,34 @@
         return 'rgba(255,255,255,0.9)';
     }
 
+
+        // 코멘트 렌더 함수
+        function renderNoteComments(key) {
+            const comments = noteMap[key] || [];
+            if (comments.length === 0) return null;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'font-size:8pt; text-align:left; line-height:1.6;';
+            comments.forEach(c => {
+                const line = document.createElement('div');
+                line.style.cssText = 'margin-bottom:2px;';
+                // 옵션 라벨
+                const label = document.createElement('span');
+                const parts = [];
+                if (c.opt1 !== 'OFF') parts.push(c.opt1);
+                parts.push(`${c.opt2}/${c.opt3}`);
+                label.textContent = `[${parts.join(', ')}] `;
+                label.style.color = 'rgba(255,255,255,0.4)';
+                // 코멘트 + 익명
+                const text = document.createElement('span');
+                text.textContent = `${c.note} (${c.uid[0]}***)`;
+                text.style.color = 'rgba(255,255,255,0.7)';
+                line.appendChild(label);
+                line.appendChild(text);
+                wrap.appendChild(line);
+            });
+            return wrap;
+        }
+
     function renderOptionSpan(opt1, opt2, opt3) {
         const span = document.createElement('span');
         const portrait = isPortrait();
@@ -455,13 +483,9 @@
 
         // Note + Vote 합쳐진 셀
         const noteVoteTd = document.createElement('td');
-        noteVoteTd.style.textAlign = 'center';
-        if (row.note) {
-            const noteEl = document.createElement('div');
-            noteEl.textContent = row.note;
-            noteEl.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:8.5pt; color:rgba(255,255,255,0.6);';
-            noteVoteTd.appendChild(noteEl);
-        }
+        noteVoteTd.style.cssText = 'vertical-align:top;';
+        const noteComments = renderNoteComments(`${rowTitle}|${row.diff}`);
+        if (noteComments) noteVoteTd.appendChild(noteComments);
         if (row.extra) {
             const totalVotes = (optionDistrib[`${rowTitle}|${row.diff}`] || []).reduce((s, d) => s + (d.count || 0), 0);
             const btn = document.createElement('a');
@@ -615,6 +639,23 @@
         });
 
         // 비율 계산 후 optionDistrib에 저장 (내림차순 정렬)
+
+        // noteMap: 투표 코멘트 수집 (Note 있는 행만)
+        const noteMap = {};
+        dbRows.forEach(r => {
+            const title = String(r[1] ?? '').trim();
+            const diff  = String(r[2] ?? '').trim();
+            const opt1  = String(r[3] ?? '').trim() || 'OFF';
+            const opt2  = String(r[4] ?? '').trim() || 'OFF';
+            const opt3  = String(r[5] ?? '').trim() || 'OFF';
+            const note  = String(r[6] ?? '').trim();
+            const uid   = String(r[7] ?? '').trim();
+            if (!note || !uid || !title || !diff) return;
+            const key = `${title}|${diff}`;
+            if (!noteMap[key]) noteMap[key] = [];
+            noteMap[key].push({ opt1, opt2, opt3, note, uid });
+        });
+
         optionDistrib = {};
         Object.entries(distribMap).forEach(([key, combos]) => {
             const total = Object.values(combos).reduce((a, b) => a + b, 0);

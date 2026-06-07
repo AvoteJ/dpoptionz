@@ -264,6 +264,23 @@
                 });
 
             const optionDistrib = {};
+
+            // noteMap: 투표 코멘트 수집
+            const noteMap = {};
+            s1rows.forEach(r => {
+                const title = String(r[1] ?? '').trim();
+                const diff  = String(r[2] ?? '').trim();
+                const opt1  = String(r[3] ?? '').trim() || 'OFF';
+                const opt2  = String(r[4] ?? '').trim() || 'OFF';
+                const opt3  = String(r[5] ?? '').trim() || 'OFF';
+                const note  = String(r[6] ?? '').trim();
+                const uid   = String(r[7] ?? '').trim();
+                if (!note || !uid || !title || !diff) return;
+                const key = `${title}|${diff}`;
+                if (!noteMap[key]) noteMap[key] = [];
+                noteMap[key].push({ opt1, opt2, opt3, note, uid });
+            });
+
             Object.entries(distribMap).forEach(([key, combos]) => {
                 const total = Object.values(combos).reduce((a, b) => a + b, 0);
                 optionDistrib[key] = Object.entries(combos)
@@ -418,7 +435,30 @@
                     if (el) updateSelectColor(el);
                 });
                 const noteCell = document.getElementById('note-cell');
-                if (noteCell) noteCell.textContent = row.note || '';
+                if (noteCell) {
+                    noteCell.innerHTML = '';
+                    const comments = noteMap[`${row.title}|${row.diff}`] || [];
+                    if (comments.length === 0) {
+                        noteCell.textContent = '';
+                    } else {
+                        comments.forEach(c => {
+                            const line = document.createElement('div');
+                            line.style.cssText = 'margin-bottom:4px; font-size:9.5pt; line-height:1.6;';
+                            const label = document.createElement('span');
+                            const parts = [];
+                            if (c.opt1 !== 'OFF') parts.push(c.opt1);
+                            parts.push(`${c.opt2}/${c.opt3}`);
+                            label.textContent = `[${parts.join(', ')}] `;
+                            label.style.color = 'rgba(255,255,255,0.4)';
+                            const text = document.createElement('span');
+                            text.textContent = `${c.note} (${c.uid[0]}***)`;
+                            text.style.color = 'rgba(255,255,255,0.75)';
+                            line.appendChild(label);
+                            line.appendChild(text);
+                            noteCell.appendChild(line);
+                        });
+                    }
+                }
                 const optCell = document.getElementById('option-cell');
                 const distrib = optionDistrib[`${row.title}|${row.diff}`] || [];
                 if (distrib.length === 0) {
