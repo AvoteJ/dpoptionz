@@ -18,6 +18,6 @@ const BANNER_LINES = [];
 
 // ── 푸터 텍스트 ──────────────────────────────
 const FOOTER_LINE1 = 'ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER';
-const FOOTER_LINE2 = 'ⓒ data provided by XYZ012, 1899, siyamaki, HATO40';
+const FOOTER_LINE2 = 'ⓒ Option data provided by XYZ012, 1899, siyamaki, HATO40';
 
 //    '페이지가 정상적으로 작동하지 않을 수 있습니다. 오류가 발생할 경우,「Report」메뉴로 제보해주시길 바랍니다.',    '未完成のため、エラーが発生する恐れがあります。発生した場合「Report」メニューでご報告お願いします。',    'Currently, errors may occur in all functions. If an error occurs, please report it through the「Report」 menu.'//
