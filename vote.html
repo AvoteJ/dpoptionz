@@ -264,22 +264,6 @@
                 });
 
             const optionDistrib = {};
-            // noteMap: 투표 코멘트 수집 (Note+UID 있는 행만)
-            window._voteNoteMap = {};
-            s1rows.forEach(r => {
-                const _t  = String(r[1] ?? '').trim();
-                const _d  = String(r[2] ?? '').trim();
-                const _o1 = String(r[3] ?? '').trim() || 'OFF';
-                const _o2 = String(r[4] ?? '').trim() || 'OFF';
-                const _o3 = String(r[5] ?? '').trim() || 'OFF';
-                const _n  = String(r[6] ?? '').trim();
-                const _u  = String(r[7] ?? '').trim();
-                if (!_n || !_u || !_t || !_d) return;
-                const _k = `${_t}|${_d}`;
-                if (!window._voteNoteMap[_k]) window._voteNoteMap[_k] = [];
-                window._voteNoteMap[_k].push({ opt1:_o1, opt2:_o2, opt3:_o3, note:_n, uid:_u });
-            });
-
             Object.entries(distribMap).forEach(([key, combos]) => {
                 const total = Object.values(combos).reduce((a, b) => a + b, 0);
                 optionDistrib[key] = Object.entries(combos)
@@ -288,6 +272,22 @@
                         const [o1, o2, o3] = combo.split('|');
                         return { opt1: o1, opt2: o2, opt3: o3, count, pct: Math.round(count / total * 1000) / 10 };
                     });
+            });
+
+            // noteMap: G열(코멘트)+H열(UID) 수집
+            const noteMap = {};
+            s1rows.forEach(r => {
+                const _t  = String(r[1] ?? '').trim();
+                const _d  = String(r[2] ?? '').trim();
+                const _o1 = String(r[3] ?? '').trim() || 'OFF';
+                const _o2 = String(r[4] ?? '').trim() || 'OFF';
+                const _o3 = String(r[5] ?? '').trim() || 'OFF';
+                const _n  = String(r[6] ?? '').trim();
+                const _u  = String(r[7] ?? '').trim();
+                if (!_n || !_t || !_d) return;
+                const _k = `${_t}|${_d}`;
+                if (!noteMap[_k]) noteMap[_k] = [];
+                noteMap[_k].push({ opt1: _o1, opt2: _o2, opt3: _o3, note: _n, uid: _u });
             });
 
             function optColor(val) {
@@ -436,7 +436,7 @@
                 const noteCell = document.getElementById('note-cell');
                 if (noteCell) {
                     noteCell.innerHTML = '';
-                    const _comments = (window._voteNoteMap || {})[`${row.title}|${row.diff}`] || [];
+                    const _comments = noteMap[`${row.title}|${row.diff}`] || [];
                     if (_comments.length === 0) {
                         noteCell.style.color = 'rgba(255,255,255,0.3)';
                         noteCell.textContent = '-';
@@ -444,14 +444,17 @@
                         _comments.forEach(c => {
                             const _line = document.createElement('div');
                             _line.style.cssText = 'margin-bottom:6px; font-size:9.5pt; line-height:1.6;';
+                            // [옵션값] 라벨
                             const _label = document.createElement('span');
                             const _parts = [];
                             if (c.opt1 !== 'OFF') _parts.push(c.opt1);
                             _parts.push(`${c.opt2}/${c.opt3}`);
                             _label.textContent = `[${_parts.join(', ')}] `;
                             _label.style.color = 'rgba(255,255,255,0.4)';
+                            // 코멘트 + 익명 ID
                             const _text = document.createElement('span');
-                            _text.textContent = `${c.note} (${c.uid[0]}***)`;
+                            const _anon = c.uid ? `(${c.uid[0]}***)` : '';
+                            _text.textContent = `${c.note} ${_anon}`;
                             _text.style.color = 'rgba(255,255,255,0.8)';
                             _line.appendChild(_label);
                             _line.appendChild(_text);
