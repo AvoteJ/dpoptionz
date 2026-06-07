@@ -264,21 +264,20 @@
                 });
 
             const optionDistrib = {};
-
             // noteMap: 투표 코멘트 수집
-            const noteMap = {};
+            window._voteNoteMap = {};
             s1rows.forEach(r => {
-                const title = String(r[1] ?? '').trim();
-                const diff  = String(r[2] ?? '').trim();
-                const opt1  = String(r[3] ?? '').trim() || 'OFF';
-                const opt2  = String(r[4] ?? '').trim() || 'OFF';
-                const opt3  = String(r[5] ?? '').trim() || 'OFF';
-                const note  = String(r[6] ?? '').trim();
-                const uid   = String(r[7] ?? '').trim();
-                if (!note || !uid || !title || !diff) return;
-                const key = `${title}|${diff}`;
-                if (!noteMap[key]) noteMap[key] = [];
-                noteMap[key].push({ opt1, opt2, opt3, note, uid });
+                const _t = String(r[1] ?? '').trim();
+                const _d = String(r[2] ?? '').trim();
+                const _o1 = String(r[3] ?? '').trim() || 'OFF';
+                const _o2 = String(r[4] ?? '').trim() || 'OFF';
+                const _o3 = String(r[5] ?? '').trim() || 'OFF';
+                const _n  = String(r[6] ?? '').trim();
+                const _u  = String(r[7] ?? '').trim();
+                if (!_n || !_u || !_t || !_d) return;
+                const _k = `${_t}|${_d}`;
+                if (!window._voteNoteMap[_k]) window._voteNoteMap[_k] = [];
+                window._voteNoteMap[_k].push({ opt1:_o1, opt2:_o2, opt3:_o3, note:_n, uid:_u });
             });
 
             Object.entries(distribMap).forEach(([key, combos]) => {
@@ -437,25 +436,26 @@
                 const noteCell = document.getElementById('note-cell');
                 if (noteCell) {
                     noteCell.innerHTML = '';
-                    const comments = noteMap[`${row.title}|${row.diff}`] || [];
-                    if (comments.length === 0) {
-                        noteCell.textContent = '';
+                    const _comments = (window._voteNoteMap || {})[`${row.title}|${row.diff}`] || [];
+                    if (_comments.length === 0) {
+                        noteCell.style.color = 'rgba(255,255,255,0.35)';
+                        noteCell.textContent = '-';
                     } else {
-                        comments.forEach(c => {
-                            const line = document.createElement('div');
-                            line.style.cssText = 'margin-bottom:4px; font-size:9.5pt; line-height:1.6;';
-                            const label = document.createElement('span');
-                            const parts = [];
-                            if (c.opt1 !== 'OFF') parts.push(c.opt1);
-                            parts.push(`${c.opt2}/${c.opt3}`);
-                            label.textContent = `[${parts.join(', ')}] `;
-                            label.style.color = 'rgba(255,255,255,0.4)';
-                            const text = document.createElement('span');
-                            text.textContent = `${c.note} (${c.uid[0]}***)`;
-                            text.style.color = 'rgba(255,255,255,0.75)';
-                            line.appendChild(label);
-                            line.appendChild(text);
-                            noteCell.appendChild(line);
+                        _comments.forEach(c => {
+                            const _line = document.createElement('div');
+                            _line.style.cssText = 'margin-bottom:4px; font-size:9.5pt; line-height:1.6;';
+                            const _label = document.createElement('span');
+                            const _parts = [];
+                            if (c.opt1 !== 'OFF') _parts.push(c.opt1);
+                            _parts.push(`${c.opt2}/${c.opt3}`);
+                            _label.textContent = `[${_parts.join(', ')}] `;
+                            _label.style.color = 'rgba(255,255,255,0.4)';
+                            const _text = document.createElement('span');
+                            _text.textContent = `${c.note} (${c.uid[0]}***)`;
+                            _text.style.color = 'rgba(255,255,255,0.75)';
+                            _line.appendChild(_label);
+                            _line.appendChild(_text);
+                            noteCell.appendChild(_line);
                         });
                     }
                 }
