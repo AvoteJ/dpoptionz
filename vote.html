@@ -264,11 +264,11 @@
                 });
 
             const optionDistrib = {};
-            // noteMap: 투표 코멘트 수집
+            // noteMap: 투표 코멘트 수집 (Note+UID 있는 행만)
             window._voteNoteMap = {};
             s1rows.forEach(r => {
-                const _t = String(r[1] ?? '').trim();
-                const _d = String(r[2] ?? '').trim();
+                const _t  = String(r[1] ?? '').trim();
+                const _d  = String(r[2] ?? '').trim();
                 const _o1 = String(r[3] ?? '').trim() || 'OFF';
                 const _o2 = String(r[4] ?? '').trim() || 'OFF';
                 const _o3 = String(r[5] ?? '').trim() || 'OFF';
@@ -438,12 +438,12 @@
                     noteCell.innerHTML = '';
                     const _comments = (window._voteNoteMap || {})[`${row.title}|${row.diff}`] || [];
                     if (_comments.length === 0) {
-                        noteCell.style.color = 'rgba(255,255,255,0.35)';
+                        noteCell.style.color = 'rgba(255,255,255,0.3)';
                         noteCell.textContent = '-';
                     } else {
                         _comments.forEach(c => {
                             const _line = document.createElement('div');
-                            _line.style.cssText = 'margin-bottom:4px; font-size:9.5pt; line-height:1.6;';
+                            _line.style.cssText = 'margin-bottom:6px; font-size:9.5pt; line-height:1.6;';
                             const _label = document.createElement('span');
                             const _parts = [];
                             if (c.opt1 !== 'OFF') _parts.push(c.opt1);
@@ -452,7 +452,7 @@
                             _label.style.color = 'rgba(255,255,255,0.4)';
                             const _text = document.createElement('span');
                             _text.textContent = `${c.note} (${c.uid[0]}***)`;
-                            _text.style.color = 'rgba(255,255,255,0.75)';
+                            _text.style.color = 'rgba(255,255,255,0.8)';
                             _line.appendChild(_label);
                             _line.appendChild(_text);
                             noteCell.appendChild(_line);
