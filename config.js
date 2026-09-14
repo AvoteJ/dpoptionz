@@ -5,19 +5,19 @@
 // =============================================
 
 // ── Apps Script URL ──────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYqiOOcSDWgDxKz4SDR6xbmLIQiQL3LtyVO5Qn_X-PMsiS1Ci5jc6RxYJM97VIKI5N/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAa4GynSmi-ObmKy6XDeHr_PnPRq73HZHIy704SuLxLZcNfH_oWE2xOjXVKEs5CrWM/exec';
 
 // ── 버전 정보 ───────────────────────────────
-const APP_VERSION = '26.06.07';
+const APP_VERSION = '26.06.02';
 
 // ── 상단 배너 설정 ────────────────────────────
 // BANNER_LABEL : 배너 왼쪽 라벨 (빈 문자열이면 라벨 숨김)
 // BANNER_LINES : 배너 문장 배열 (빈 배열 [] 이면 배너 전체 숨김)
-const BANNER_LABEL = '';
-const BANNER_LINES = [];
+const BANNER_LABEL = '📢 공지';
+const BANNER_LINES = ['서비스 종료에 대한 공지'];
 
 // ── 푸터 텍스트 ──────────────────────────────
 const FOOTER_LINE1 = 'ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER';
-const FOOTER_LINE2 = 'ⓒ Option data provided by XYZ012, 1899, siyamaki, HATO40';
+const FOOTER_LINE2 = 'ⓒ data provided by XYZ012, 1899, siyamaki';
 
 //    '페이지가 정상적으로 작동하지 않을 수 있습니다. 오류가 발생할 경우,「Report」메뉴로 제보해주시길 바랍니다.',    '未完成のため、エラーが発生する恐れがあります。発生した場合「Report」メニューでご報告お願いします。',    'Currently, errors may occur in all functions. If an error occurs, please report it through the「Report」 menu.'//
