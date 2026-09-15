@@ -14,7 +14,7 @@ const APP_VERSION = '26.06.02';
 // BANNER_LABEL : 배너 왼쪽 라벨 (빈 문자열이면 라벨 숨김)
 // BANNER_LINES : 배너 문장 배열 (빈 배열 [] 이면 배너 전체 숨김)
 const BANNER_LABEL = '📢 공지';
-const BANNER_LINES = ['서비스 관리자 이관에 대한 공지 :: 서비스 관리 종료 예정이었으나, 관리자 인계를 통한 지속 서비스 예정으로, 9/30 23:59 부터 관리자가 변경될 예정입니다.'];
+const BANNER_LINES = ['서비스 관리자 이관에 대한 공지 :: 서비스 종료 예정이었으나, 관리자 인계를 통한 지속 서비스 예정으로, 9/30 23:59 부터 관리자가 변경될 예정입니다. 이용에 혼선을 드려 죄송합니다.'];
 
 // ── 푸터 텍스트 ──────────────────────────────
 const FOOTER_LINE1 = 'ⓒ 2026 Subby. with beatmania IIDX Double Play Group - Team. DXER';
